@@ -16,7 +16,7 @@ class AbstractGridworld(BaseEnv):
         3: left
     """
 
-    def __init__(self, dims, start, blocks, goals):
+    def __init__(self, dims, start, blocks=set(), goals=set()):
         """Instantiates a gridworld environment.
 
         Args:
@@ -49,6 +49,9 @@ class AbstractGridworld(BaseEnv):
 
     def reset(self):
         self._state = self._start
+
+    def actions(self):
+        return range(self.action_space.n)
 
     def _apply_move(self, state, action):
         x, y = state

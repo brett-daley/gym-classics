@@ -8,17 +8,12 @@ class WindyGridworld(AbstractGridworld):
     """
 
     def __init__(self):
-        dims = (10, 7)
-        start = (0, 3)
-        blocks = set()
-        goals = {(7, 3)}
-        super().__init__(dims, start, blocks, goals)
+        super().__init__(dims=(10, 7), start=(0, 3), goals={(7, 3)})
 
     def step(self, action):
         assert self.action_space.contains(action)
         state = self._apply_move(self._state, action)
         state = self._apply_wind(state)
-        state = self._clamp(state)
 
         self._state = state
         reward = 0.0 if self._is_goal(state) else -1.0
@@ -27,7 +22,8 @@ class WindyGridworld(AbstractGridworld):
 
     def _apply_wind(self, state):
         x, y = state
-        return (x, y + self._wind_strength())
+        state = (x, y + self._wind_strength())
+        return self._clamp(state)
 
     def _wind_strength(self):
         """Returns wind strength in the current state."""
