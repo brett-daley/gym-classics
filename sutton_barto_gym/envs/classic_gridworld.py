@@ -2,10 +2,10 @@ from collections import deque
 
 import numpy as np
 
-from sutton_barto_gym.building_blocks import AbstractGridworld
+from sutton_barto_gym.envs.abstract.gridworld import Gridworld
 
 
-class ClassicGridworld(AbstractGridworld):
+class ClassicGridworld(Gridworld):
     """'Classic' Gridworld.
 
     Norvig & Russel (2020, 4th ed.).

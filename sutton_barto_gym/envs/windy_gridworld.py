@@ -1,7 +1,7 @@
-from sutton_barto_gym.building_blocks import AbstractGridworld
+from sutton_barto_gym.envs.abstract.gridworld import Gridworld
 
 
-class WindyGridworld(AbstractGridworld):
+class WindyGridworld(Gridworld):
     """Windy Gridworld.
 
     Page 130 of Sutton & Barto (2018).

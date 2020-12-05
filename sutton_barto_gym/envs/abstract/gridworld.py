@@ -3,10 +3,10 @@ from abc import abstractmethod
 from gym.spaces import Discrete
 import numpy as np
 
-from sutton_barto_gym.building_blocks import BaseEnv
+from sutton_barto_gym.envs.abstract.base_env import BaseEnv
 
 
-class AbstractGridworld(BaseEnv):
+class Gridworld(BaseEnv):
     """Abstract class for creating gridworld-type environments.
 
     Actions:
