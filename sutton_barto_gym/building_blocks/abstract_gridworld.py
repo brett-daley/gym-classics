@@ -25,6 +25,8 @@ class AbstractGridworld(BaseEnv):
             blocks
             goals
         """
+        super().__init__()
+
         self._dims = dims
         self._start = start
         self._blocks = blocks

@@ -17,18 +17,16 @@ class ClassicGridworld(AbstractGridworld):
     def step(self, action):
         assert self.action_space.contains(action)
         state = self._state
+        reward = self._reward(state, action)
+        done = self._done(state)
         info = {}
 
-        if state == (3, 1):
-            return self._encode(state), -1.0, True, info
-        elif state == (3, 2):
-            return self._encode(state), 1.0, True, info
+        if done:
+            return self._encode(state), reward, done, info
 
         action = self._noisy_action(action)
-        state = self._apply_move(state, action)
-
-        self._state = state
-        return self._encode(state), 0.0, False, info
+        state = self._state = self._apply_move(state, action)
+        return self._encode(state), reward, done, info
 
     def _noisy_action(self, action):
         x = np.random.rand()
@@ -49,3 +47,21 @@ class ClassicGridworld(AbstractGridworld):
             all_actions.rotate(-1)
 
         return all_actions[action]
+
+    def _reward(self, state, action):
+        return {(3, 1): -1.0, (3, 2): 1.0}.get(state, 0.0)
+
+    def _done(self, state):
+        return state in {(3, 1), (3, 2)}
+
+    def _generate_transitions(self, state, action):
+        s = self._decode(state)
+
+        all_actions = deque(self.actions())
+        all_actions.rotate(-action)
+
+        for i in [-1, 0, 1]:
+            a = all_actions[i]
+            ns = self._apply_move(s, a)
+            prob = (0.8 if i == 0 else 0.1)
+            yield self._encode(ns), self._reward(s, a), prob, self._done(s)
