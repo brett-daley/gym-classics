@@ -1,14 +1,28 @@
+from abc import ABCMeta, abstractmethod
+
 import gym
+from gym.spaces import Discrete
 import numpy as np
 
 
-class BaseEnv(gym.Env):
+class BaseEnv(gym.Env, metaclass=ABCMeta):
     """Abstract base class for shared functionality between all environments."""
 
-    def __init__(self):
-        self.observation_space = None
-        self.action_space = None
+    def __init__(self, n_actions):
         self._transition_cache = {}
+
+        # Make look-up tables for quick state-to-integer conversion and vice-versa
+        all_states = list(self._decoded_states())
+        self._encoder = {}
+        self._decoder = {}
+        i = 0
+        for state in all_states:
+            self._encoder[state] = i
+            self._decoder[i] = state
+            i += 1
+
+        self.observation_space = Discrete(len(all_states))
+        self.action_space = Discrete(n_actions)
 
     def seed(self, seed=None):
         self.action_space.seed(seed)
@@ -17,6 +31,20 @@ class BaseEnv(gym.Env):
     def states(self):
         """Returns a generator over all possible environment states."""
         return range(self.observation_space.n)
+
+    @abstractmethod
+    def _decoded_states(self):
+        """Returns a generator over all possible underlying (non-encoded) states in the
+        environment. Used internally to initialize the encoder/decoder."""
+        raise NotImplementedError
+
+    def _encode(self, state):
+        """Converts a raw state into a unique integer."""
+        return self._encoder[state]
+
+    def _decode(self, i):
+        """Reverts an encoded integer back to its raw state."""
+        return self._decoder[i]
 
     def actions(self):
         """Returns a generator over all possible agent actions."""
@@ -46,6 +74,7 @@ class BaseEnv(gym.Env):
         self._transition_cache[sa_pair] = transition
         return transition
 
+    @abstractmethod
     def _generate_transitions(self, state, action):
         """Returns a generator over all transitions from this state-action pair.
 

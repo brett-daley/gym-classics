@@ -1,8 +1,3 @@
-from abc import abstractmethod
-
-from gym.spaces import Discrete
-import numpy as np
-
 from sutton_barto_gym.envs.abstract.base_env import BaseEnv
 
 
@@ -25,35 +20,27 @@ class Gridworld(BaseEnv):
             blocks
             goals
         """
-        super().__init__()
-
         self._dims = dims
         self._start = start
         self._blocks = blocks
         self._goals = goals
 
-        self.observation_space = Discrete(np.prod(dims) - len(blocks))
-        self.action_space = Discrete(4)
+        super().__init__(n_actions=4)
 
         self._state = None  # Tuple representing agent's position
-
-        # Make look-up tables for quick state-to-integer conversion and vice-versa
-        self._encoder = {}
-        self._decoder = {}
-        i = 0
-        for x in range(dims[0]):
-            for y in range(dims[1]):
-                state = (x, y)
-                if not self._is_block(state):
-                    self._encoder[state] = i
-                    self._decoder[i] = state
-                    i += 1
 
     def reset(self):
         self._state = self._start
 
     def actions(self):
         return range(self.action_space.n)
+
+    def _decoded_states(self):
+        for x in range(self._dims[0]):
+            for y in range(self._dims[1]):
+                state = (x, y)
+                if not self._is_block(state):
+                    yield state
 
     def _apply_move(self, state, action):
         x, y = state
@@ -84,8 +71,7 @@ class Gridworld(BaseEnv):
         """Checks whether this state is a goal."""
         return state in self._goals
 
-    def _encode(self, state):
-        return self._encoder[state]
-
-    def _decode(self, i):
-        return self._decoder[i]
+    def _generate_transitions(self, state, action):
+        # TODO: this overrides the abstractmethod for all subclasses, but we will
+        # eventually want to remove this
+        raise NotImplementedError
