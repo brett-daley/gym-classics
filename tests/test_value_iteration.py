@@ -10,6 +10,9 @@ class TestValueIteration(unittest.TestCase):
     def test_classic_gridworld(self):
         self._run_test('ClassicGridworld-v0', discount=0.9)
 
+    def test_windy_gridworld(self):
+        self._run_test('WindyGridworld-v0', discount=0.9)
+
     def _run_test(self, env_id, discount):
         env = gym.make(env_id)
         V = value_iteration(env, discount)
