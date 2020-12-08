@@ -7,6 +7,11 @@ register(
 )
 
 register(
+    id='DynaMaze-v0',
+    entry_point='sutton_barto_gym.envs.dyna_maze:DynaMaze'
+)
+
+register(
     id='WindyGridworld-v0',
     entry_point='sutton_barto_gym.envs.windy_gridworld:WindyGridworld'
 )
