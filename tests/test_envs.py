@@ -18,11 +18,11 @@ class TestEnvs(unittest.TestCase):
         state = env.reset()
 
         for _ in range(9):
-            state, reward, done, _ = env.step(1)
+            env.step(1)
         for _ in range(4):
             env.step(2)
-        env.step(3)
-        state, reward, done, _ = env.step(3)
+        for _ in range(2):
+            state, reward, done, _ = env.step(3)
 
         self.assertEqual(env._decode(state), (7, 3))
         self.assertEqual(reward, 0.0)

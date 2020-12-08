@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 from sutton_barto_gym.envs.abstract.base_env import BaseEnv
 
 
@@ -42,6 +44,15 @@ class Gridworld(BaseEnv):
                 if not self._is_block(state):
                     yield state
 
+    def step(self, action):
+        assert self.action_space.contains(action)
+        state = self._state
+        next_state = self._state = self._apply_move(self._state, action)
+
+        reward = self._reward(state, action, next_state)
+        done = self._done(state, action, next_state)
+        return self._encode(next_state), reward, done, {}
+
     def _apply_move(self, state, action):
         x, y = state
         new_state = {
@@ -72,6 +83,19 @@ class Gridworld(BaseEnv):
         return state in self._goals
 
     def _generate_transitions(self, state, action):
-        # TODO: this overrides the abstractmethod for all subclasses, but we will
-        # eventually want to remove this
+        state = self._decode(state)
+        next_state = self._apply_move(state, action)
+        reward = self._reward(state, action, next_state)
+        prob = 1.0
+        done = self._done(state, action, next_state)
+        yield self._encode(next_state), reward, prob, done
+
+    @abstractmethod
+    def _reward(self, state, action, next_state):
+        """Returns the reward yielded by this (S,A,S') outcome."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def _done(self, state, action, next_state):
+        """Returns True if this (S,A,S') outcome should terminate, False otherwise."""
         raise NotImplementedError
