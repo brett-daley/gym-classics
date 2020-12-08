@@ -33,6 +33,21 @@ class TestEnvs(unittest.TestCase):
         self.assertTrue(done)
 
 
+    def test_sparse_gridworld(self):
+        self._test_interface('SparseGridworld-v0')
+
+    def test_sparse_gridworld_optimal_path(self):
+        env = gym.make('SparseGridworld-v0')
+        env.reset()
+
+        for _ in range(5):
+            state, reward, done, _ = env.step(1)
+
+        self.assertEqual(env._decode(state), (6, 3))
+        self.assertEqual(reward, 1.0)
+        self.assertTrue(done)
+
+
     def test_windy_gridworld(self):
         self._test_interface('WindyGridworld-v0')
 

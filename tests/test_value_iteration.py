@@ -13,6 +13,9 @@ class TestValueIteration(unittest.TestCase):
     def test_dyna_maze(self):
         self._run_test('DynaMaze-v0', discount=0.95)
 
+    def test_sparse_gridworld(self):
+        self._run_test('SparseGridworld-v0', discount=0.9)
+
     def test_windy_gridworld(self):
         self._run_test('WindyGridworld-v0', discount=1.0)
 
