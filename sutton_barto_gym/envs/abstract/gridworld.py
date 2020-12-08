@@ -13,19 +13,17 @@ class Gridworld(BaseEnv):
         3: left
     """
 
-    def __init__(self, dims, start, blocks=set(), goals=set()):
+    def __init__(self, dims, start, blocks=set()):
         """Instantiates a gridworld environment.
 
         Args:
             dims
             start
             blocks
-            goals
         """
         self._dims = dims
         self._start = start
         self._blocks = blocks
-        self._goals = goals
 
         super().__init__(n_actions=4)
 
@@ -33,6 +31,7 @@ class Gridworld(BaseEnv):
 
     def reset(self):
         self._state = self._start
+        return self._encode(self._state)
 
     def actions(self):
         return range(self.action_space.n)
@@ -41,31 +40,31 @@ class Gridworld(BaseEnv):
         for x in range(self._dims[0]):
             for y in range(self._dims[1]):
                 state = (x, y)
-                if not self._is_block(state):
+                if not self._is_blocked(state):
                     yield state
 
     def step(self, action):
         assert self.action_space.contains(action)
         state = self._state
-        next_state = self._state = self._apply_move(self._state, action)
-
+        next_state = self._state = self._take_action(state, action)
         reward = self._reward(state, action, next_state)
         done = self._done(state, action, next_state)
         return self._encode(next_state), reward, done, {}
 
-    def _apply_move(self, state, action):
+    def _take_action(self, state, action):
+        next_state = self._move(state, action)
+        if self._is_blocked(next_state):
+            next_state = state
+        return self._clamp(next_state)
+
+    def _move(self, state, action):
         x, y = state
-        new_state = {
+        return {
             0: (x,   y+1),  # Up
             1: (x+1, y),    # Right
             2: (x,   y-1),  # Down
             3: (x-1, y)     # Left
         }[action]
-
-        if self._is_block(new_state):
-            return state
-
-        return self._clamp(new_state)
 
     def _clamp(self, state):
         """Clamps the state within the grid dimensions."""
@@ -74,17 +73,13 @@ class Gridworld(BaseEnv):
         y = max(0, min(y, self._dims[1] - 1))
         return (x, y)
 
-    def _is_block(self, state):
-        """Checks whether this state intersects a wall."""
+    def _is_blocked(self, state):
+        """Returns True if this state cannot be occupied, False otherwise."""
         return state in self._blocks
-
-    def _is_goal(self, state):
-        """Checks whether this state is a goal."""
-        return state in self._goals
 
     def _generate_transitions(self, state, action):
         state = self._decode(state)
-        next_state = self._apply_move(state, action)
+        next_state = self._take_action(state, action)
         reward = self._reward(state, action, next_state)
         prob = 1.0
         done = self._done(state, action, next_state)

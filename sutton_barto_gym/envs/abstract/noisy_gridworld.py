@@ -46,7 +46,7 @@ class NoisyGridworld(Gridworld):
 
         for i in [-1, 0, 1]:
             a = all_actions[i]
-            next_state = super()._apply_move(state, a)
+            next_state = super()._take_action(state, a)
             reward = self._reward(state, a, next_state)
             prob = (0.8 if i == 0 else 0.1)
             done = self._done(state, a, next_state)

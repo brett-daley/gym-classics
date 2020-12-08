@@ -11,7 +11,16 @@ class TestValueIteration(unittest.TestCase):
         self._run_test('ClassicGridworld-v0', discount=0.9)
 
     def test_windy_gridworld(self):
-        self._run_test('WindyGridworld-v0', discount=0.9)
+        self._run_test('WindyGridworld-v0', discount=1.0)
+
+    def test_windy_gridworld_kings(self):
+        self._run_test('WindyGridworldKings-v0', discount=1.0)
+
+    def test_windy_gridworld_kings_no_op(self):
+        self._run_test('WindyGridworldKingsNoOp-v0', discount=1.0)
+
+    def test_windy_gridworld_kings_stochastic(self):
+        self._run_test('WindyGridworldKingsStochastic-v0', discount=1.0)
 
     def _run_test(self, env_id, discount):
         env = gym.make(env_id)
@@ -39,7 +48,7 @@ class TestValueIteration(unittest.TestCase):
         for y in reversed(range(env._dims[1])):
             for x in range(env._dims[0]):
                 state = (x, y)
-                if not env._is_block(state):
+                if not env._is_blocked(state):
                     s = env._encode(state)
                     print(formatter(V[s]).rjust(maxlen), end=' ' * 2)
                 else:

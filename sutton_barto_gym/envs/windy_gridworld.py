@@ -1,3 +1,7 @@
+from gym.spaces import Discrete
+
+import numpy as np
+
 from sutton_barto_gym.envs.abstract.gridworld import Gridworld
 
 
@@ -8,17 +12,18 @@ class WindyGridworld(Gridworld):
     """
 
     def __init__(self):
-        super().__init__(dims=(10, 7), start=(0, 3), goals={(7, 3)})
+        super().__init__(dims=(10, 7), start=(0, 3))
+        self._goal = (7, 3)
 
-    def _apply_move(self, state, action):
+    def _take_action(self, state, action):
         wind_strength = self._wind_strength(state)
-        state = super()._apply_move(state, action)
-        return self._apply_wind(state, wind_strength)
+        state = super()._take_action(state, action)
+        state = self._apply_wind(state, wind_strength)
+        return self._clamp(state)
 
     def _apply_wind(self, state, strength):
         x, y = state
-        state = (x, y + strength)
-        return self._clamp(state)
+        return (x, y + strength)
 
     def _wind_strength(self, state):
         """Returns wind strength in the given state."""
@@ -31,7 +36,68 @@ class WindyGridworld(Gridworld):
             return 0
 
     def _reward(self, state, action, next_state):
-        return 0.0 if self._is_goal(next_state) else -1.0
+        return 0.0 if next_state == self._goal else -1.0
 
     def _done(self, state, action, next_state):
-        return self._is_goal(next_state)
+        return next_state == self._goal
+
+
+class WindyGridworldKings(WindyGridworld):
+    """Windy Gridworld with King's moves.
+
+    Page 131 of Sutton & Barto (2018).
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.action_space = Discrete(8)
+
+    def _move(self, state, action):
+        if action < 4:
+            # Standard cardinal direction
+            return super()._move(state, action)
+
+        x, y = state
+        return {
+            4: (x+1, y+1),  # Up-Right
+            5: (x+1, y-1),  # Down-Right
+            6: (x-1, y-1),  # Down-Left
+            7: (x-1, y+1)   # Up-Left
+        }[action]
+
+
+class WindyGridworldKingsNoOp(WindyGridworldKings):
+    """Windy Gridworld with King's moves and a no-op action.
+
+    Page 131 of Sutton & Barto (2018).
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.action_space = Discrete(9)
+
+    def _move(self, state, action):
+        if action == 8:  # No-op
+            return state
+        return super()._move(state, action)
+
+
+class WindyGridworldKingsStochastic(WindyGridworldKings):
+    """Windy Gridworld with King's moves and stochastic wind.
+
+    Page 131 of Sutton & Barto (2018).
+    """
+
+    def _wind_strength(self, state):
+        strength = super()._wind_strength(state)
+
+        # If there is no wind, do nothing
+        if strength == 0:
+            return strength
+
+        # 1/3 chance each: decreased, unchanged, or increased strength
+        return strength + np.random.choice([-1, 0, 1])
+
+    def _generate_transitions(self, state, action):
+        # TODO: must account for stochastic wind here
+        raise NotImplementedError
