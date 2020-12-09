@@ -13,7 +13,7 @@ class Gridworld(BaseEnv):
         3: left
     """
 
-    def __init__(self, dims, start, blocks=set()):
+    def __init__(self, dims, start, blocks=frozenset()):
         """Instantiates a gridworld environment.
 
         Args:
@@ -33,9 +33,6 @@ class Gridworld(BaseEnv):
         self._state = self._start
         return self._encode(self._state)
 
-    def actions(self):
-        return range(self.action_space.n)
-
     def _decoded_states(self):
         for x in range(self._dims[0]):
             for y in range(self._dims[1]):
@@ -43,15 +40,7 @@ class Gridworld(BaseEnv):
                 if not self._is_blocked(state):
                     yield state
 
-    def step(self, action):
-        assert self.action_space.contains(action)
-        state = self._state
-        next_state = self._state = self._take_action(state, action)
-        reward = self._reward(state, action, next_state)
-        done = self._done(state, action, next_state)
-        return self._encode(next_state), reward, done, {}
-
-    def _take_action(self, state, action):
+    def _next_state(self, state, action):
         next_state = self._move(state, action)
         if self._is_blocked(next_state):
             next_state = state
@@ -79,18 +68,8 @@ class Gridworld(BaseEnv):
 
     def _generate_transitions(self, state, action):
         state = self._decode(state)
-        next_state = self._take_action(state, action)
+        next_state = self._next_state(state, action)
         reward = self._reward(state, action, next_state)
         prob = 1.0
         done = self._done(state, action, next_state)
         yield self._encode(next_state), reward, prob, done
-
-    @abstractmethod
-    def _reward(self, state, action, next_state):
-        """Returns the reward yielded by this (S,A,S') outcome."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def _done(self, state, action, next_state):
-        """Returns True if this (S,A,S') outcome should terminate, False otherwise."""
-        raise NotImplementedError

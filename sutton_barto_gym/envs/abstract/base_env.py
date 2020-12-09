@@ -28,6 +28,36 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
         self.action_space.seed(seed)
         return [seed]
 
+    @abstractmethod
+    def reset(self):
+        raise NotImplementedError
+
+    def step(self, action):
+        assert self.action_space.contains(action)
+        state = self._state
+        next_state = self._state = self._next_state(state, action)
+        reward = self._reward(state, action, next_state)
+        done = self._done(state, action, next_state)
+        return self._encode(next_state), reward, done, {}
+
+    @abstractmethod
+    def _next_state(self, state, action):
+        """Returns a (possibly random) next state S' induced by the state-action pair (S, A)."""
+        next_state = self._move(state, action)
+        if self._is_blocked(next_state):
+            next_state = state
+        return self._clamp(next_state)
+
+    @abstractmethod
+    def _reward(self, state, action, next_state):
+        """Returns the reward yielded by this (S,A,S') outcome."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def _done(self, state, action, next_state):
+        """Returns True if this (S,A,S') outcome should terminate, False otherwise."""
+        raise NotImplementedError
+
     def states(self):
         """Returns a generator over all possible environment states."""
         return range(self.observation_space.n)
