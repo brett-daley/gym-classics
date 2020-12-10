@@ -63,6 +63,10 @@ class TestEnvs(unittest.TestCase):
         self.assertTrue(done)
 
 
+    def test_four_rooms(self):
+        self._test_interface('FourRooms-v0')
+
+
     def test_sparse_gridworld(self):
         self._test_interface('SparseGridworld-v0')
 
