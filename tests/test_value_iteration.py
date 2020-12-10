@@ -7,6 +7,12 @@ from sutton_barto_gym.value_iteration import value_iteration
 
 
 class TestValueIteration(unittest.TestCase):
+    def test_5walk(self):
+        self._run_test('5Walk-v0', discount=0.9)
+
+    def test_19walk(self):
+        self._run_test('19Walk-v0', discount=0.9)
+
     def test_classic_gridworld(self):
         self._run_test('ClassicGridworld-v0', discount=0.9)
 

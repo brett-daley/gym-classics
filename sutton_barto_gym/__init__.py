@@ -2,6 +2,16 @@ from gym.envs import register
 
 
 register(
+    id='5Walk-v0',
+    entry_point='sutton_barto_gym.envs.linear_walks:Walk5'
+)
+
+register(
+    id='19Walk-v0',
+    entry_point='sutton_barto_gym.envs.linear_walks:Walk19'
+)
+
+register(
     id='ClassicGridworld-v0',
     entry_point='sutton_barto_gym.envs.classic_gridworld:ClassicGridworld'
 )

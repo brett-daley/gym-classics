@@ -6,6 +6,36 @@ import sutton_barto_gym
 
 
 class TestEnvs(unittest.TestCase):
+    def test_5walk(self):
+        self._test_interface('5Walk-v0')
+
+    def test_5walk_optimal_path(self):
+        env = gym.make('5Walk-v0')
+        env.reset()
+
+        for _ in range(3):
+            state, reward, done, _ = env.step(1)
+
+        self.assertEqual(state, 4)
+        self.assertEqual(reward, 1.0)
+        self.assertTrue(done)
+
+
+    def test_19walk(self):
+        self._test_interface('19Walk-v0')
+
+    def test_19walk_optimal_path(self):
+        env = gym.make('19Walk-v0')
+        env.reset()
+
+        for _ in range(10):
+            state, reward, done, _ = env.step(1)
+
+        self.assertEqual(state, 18)
+        self.assertEqual(reward, 1.0)
+        self.assertTrue(done)
+
+
     def test_classic_gridworld(self):
         self._test_interface('ClassicGridworld-v0')
 
