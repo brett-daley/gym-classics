@@ -27,6 +27,16 @@ register(
 )
 
 register(
+    id='Racetrack1-v0',
+    entry_point='sutton_barto_gym.envs.racetracks:Racetrack1'
+)
+
+register(
+    id='Racetrack2-v0',
+    entry_point='sutton_barto_gym.envs.racetracks:Racetrack2'
+)
+
+register(
     id='SparseGridworld-v0',
     entry_point='sutton_barto_gym.envs.sparse_gridworld:SparseGridworld'
 )

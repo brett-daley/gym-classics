@@ -67,6 +67,14 @@ class TestEnvs(unittest.TestCase):
         self._test_interface('FourRooms-v0')
 
 
+    def test_racetrack1(self):
+        self._test_interface('Racetrack1-v0')
+
+
+    def test_racetrack2(self):
+        self._test_interface('Racetrack2-v0')
+
+
     def test_sparse_gridworld(self):
         self._test_interface('SparseGridworld-v0')
 

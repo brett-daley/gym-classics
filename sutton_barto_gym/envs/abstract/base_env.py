@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 
 import gym
 from gym.spaces import Discrete
+from gym.utils import seeding
 import numpy as np
 
 
@@ -25,6 +26,7 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
         self.action_space = Discrete(n_actions)
 
     def seed(self, seed=None):
+        self.np_random, seed = seeding.np_random(seed)
         self.action_space.seed(seed)
         return [seed]
 

@@ -1,7 +1,5 @@
 from gym.spaces import Discrete
 
-import numpy as np
-
 from sutton_barto_gym.envs.abstract.gridworld import Gridworld
 
 
@@ -96,7 +94,7 @@ class WindyGridworldKingsStochastic(WindyGridworldKings):
             return strength
 
         # 1/3 chance each: decreased, unchanged, or increased strength
-        return strength + np.random.choice([-1, 0, 1])
+        return strength + self.np_random.choice([-1, 0, 1])
 
     def _generate_transitions(self, state, action):
         # TODO: must account for stochastic wind here

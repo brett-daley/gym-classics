@@ -1,7 +1,5 @@
 from collections import deque
 
-import numpy as np
-
 from sutton_barto_gym.envs.abstract.gridworld import Gridworld
 
 
@@ -19,10 +17,10 @@ class NoisyGridworld(Gridworld):
         return super()._apply_move(state, action)
 
     def _noisy_action(self, action):
-        x = np.random.rand()
+        p = self.np_random.rand()
 
         # 80% chance the action is unaffected
-        if x < 0.8:
+        if p < 0.8:
             return action
 
         # We use a deque for easy rotation
