@@ -18,6 +18,9 @@ class TestValueIteration(unittest.TestCase):
     def test_classic_gridworld(self):
         self._run_test('ClassicGridworld-v0', discount=0.9)
 
+    def test_cliff_walk(self):
+        self._run_test('CliffWalk-v0', discount=0.9)
+
     def test_dyna_maze(self):
         self._run_test('DynaMaze-v0', discount=0.95)
 
@@ -107,9 +110,13 @@ class TestValueIteration(unittest.TestCase):
         for y in reversed(range(env._dims[1])):
             for x in range(env._dims[0]):
                 state = (x, y)
-                if not env._is_blocked(state):
-                    s = env._encode(state)
-                    print(formatter(V[s]).rjust(maxlen), end=' ' * 2)
-                else:
+                # TODO: clean up this logic
+                try:
+                    if not env._is_blocked(state):
+                        s = env._encode(state)
+                        print(formatter(V[s]).rjust(maxlen), end=' ' * 2)
+                    else:
+                        raise KeyError
+                except KeyError:
                     print(' ' * maxlen, end=' ' * 2)
             print()

@@ -40,6 +40,35 @@ class TestEnvs(unittest.TestCase):
         self._test_interface('ClassicGridworld-v0')
 
 
+    def test_cliff_walk(self):
+        self._test_interface('CliffWalk-v0')
+
+    def test_cliff_walk_terminal(self):
+        env = gym.make('CliffWalk-v0')
+        env.reset()
+
+        state, reward, done, _ = env.step(1)
+
+        # TODO: we never actually occupy the cliff. Is this correct?
+        self.assertEqual(env._decode(state), (0, 0))
+        self.assertEqual(reward, -100.0)
+        self.assertTrue(done)
+
+    def test_cliff_walk_optimal_path(self):
+        env = gym.make('CliffWalk-v0')
+        env.reset()
+
+        env.step(0)
+        for _ in range(11):
+            env.step(1)
+        state, reward, done, _ = env.step(2)
+
+        # TODO: we never actually occupy the goal state. Is this correct?
+        self.assertEqual(env._decode(state), (11, 1))
+        self.assertEqual(reward, -1.0)
+        self.assertTrue(done)
+
+
     def test_dyna_maze(self):
         self._test_interface('DynaMaze-v0')
 

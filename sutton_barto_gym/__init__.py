@@ -17,6 +17,11 @@ register(
 )
 
 register(
+    id='CliffWalk-v0',
+    entry_point='sutton_barto_gym.envs.cliff_walk:CliffWalk'
+)
+
+register(
     id='DynaMaze-v0',
     entry_point='sutton_barto_gym.envs.dyna_maze:DynaMaze'
 )
