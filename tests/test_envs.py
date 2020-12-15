@@ -2,7 +2,7 @@ import unittest
 
 import gym
 
-import sutton_barto_gym
+import gym_classics
 
 
 class TestEnvs(unittest.TestCase):

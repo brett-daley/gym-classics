@@ -1,4 +1,4 @@
-from sutton_barto_gym.envs.abstract.noisy_gridworld import NoisyGridworld
+from gym_classics.envs.abstract.noisy_gridworld import NoisyGridworld
 
 
 class SparseGridworld(NoisyGridworld):

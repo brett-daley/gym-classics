@@ -3,8 +3,6 @@ import argparse
 import gym
 import numpy as np
 
-import sutton_barto_gym
-
 
 def value_iteration(env, discount, max_delta=1e-3):
     assert 0.0 <= discount <= 1.0

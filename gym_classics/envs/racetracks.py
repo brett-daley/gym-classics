@@ -1,6 +1,6 @@
 import numpy as np
 
-from sutton_barto_gym.envs.abstract.racetrack import Racetrack
+from gym_classics.envs.abstract.racetrack import Racetrack
 
 
 class Racetrack1(Racetrack):

@@ -1,4 +1,4 @@
-from sutton_barto_gym.envs.abstract.linear_walk import LinearWalk
+from gym_classics.envs.abstract.linear_walk import LinearWalk
 
 
 class Walk5(LinearWalk):

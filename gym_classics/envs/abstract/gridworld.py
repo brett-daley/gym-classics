@@ -1,4 +1,4 @@
-from sutton_barto_gym.envs.abstract.base_env import BaseEnv
+from gym_classics.envs.abstract.base_env import BaseEnv
 
 
 class Gridworld(BaseEnv):

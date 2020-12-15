@@ -3,9 +3,9 @@ import unittest
 import gym
 import numpy as np
 
-from sutton_barto_gym.envs.abstract.gridworld import Gridworld
-from sutton_barto_gym.envs.abstract.racetrack import Racetrack
-from sutton_barto_gym.value_iteration import value_iteration
+from gym_classics.envs.abstract.gridworld import Gridworld
+from gym_classics.envs.abstract.racetrack import Racetrack
+from gym_classics.value_iteration import value_iteration
 
 
 class TestValueIteration(unittest.TestCase):

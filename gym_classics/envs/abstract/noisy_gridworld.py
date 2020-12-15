@@ -1,6 +1,6 @@
 from collections import deque
 
-from sutton_barto_gym.envs.abstract.gridworld import Gridworld
+from gym_classics.envs.abstract.gridworld import Gridworld
 
 
 class NoisyGridworld(Gridworld):
