@@ -42,7 +42,7 @@ class Gridworld(BaseEnv):
         next_state = self._move(state, action)
         if self._is_blocked(next_state):
             next_state = state
-        return self._clamp(next_state)
+        return self._clamp(next_state), 1.0
 
     def _move(self, state, action):
         x, y = state
@@ -65,9 +65,4 @@ class Gridworld(BaseEnv):
         return state in self._blocks
 
     def _generate_transitions(self, state, action):
-        state = self._decode(state)
-        next_state = self._next_state(state, action)
-        reward = self._reward(state, action, next_state)
-        prob = 1.0
-        done = self._done(state, action, next_state)
-        yield self._encode(next_state), reward, prob, done
+        yield self._deterministic_step(state, action)

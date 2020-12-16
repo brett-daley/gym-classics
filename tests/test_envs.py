@@ -49,7 +49,6 @@ class TestEnvs(unittest.TestCase):
 
         state, reward, done, _ = env.step(1)
 
-        # TODO: we never actually occupy the cliff. Is this correct?
         self.assertEqual(env._decode(state), (0, 0))
         self.assertEqual(reward, -100.0)
         self.assertTrue(done)
@@ -63,7 +62,6 @@ class TestEnvs(unittest.TestCase):
             env.step(1)
         state, reward, done, _ = env.step(2)
 
-        # TODO: we never actually occupy the goal state. Is this correct?
         self.assertEqual(env._decode(state), (11, 1))
         self.assertEqual(reward, -1.0)
         self.assertTrue(done)
@@ -87,7 +85,7 @@ class TestEnvs(unittest.TestCase):
         for _ in range(3):
             state, reward, done, _ = env.step(0)
 
-        self.assertEqual(env._decode(state), (8, 5))
+        self.assertEqual(env._decode(state), (8, 4))
         self.assertEqual(reward, 1.0)
         self.assertTrue(done)
 
@@ -107,17 +105,6 @@ class TestEnvs(unittest.TestCase):
     def test_sparse_gridworld(self):
         self._test_interface('SparseGridworld-v0')
 
-    def test_sparse_gridworld_optimal_path(self):
-        env = gym.make('SparseGridworld-v0')
-        env.reset()
-
-        for _ in range(5):
-            state, reward, done, _ = env.step(1)
-
-        self.assertEqual(env._decode(state), (6, 3))
-        self.assertEqual(reward, 1.0)
-        self.assertTrue(done)
-
 
     def test_windy_gridworld(self):
         self._test_interface('WindyGridworld-v0')
@@ -133,7 +120,7 @@ class TestEnvs(unittest.TestCase):
         for _ in range(2):
             state, reward, done, _ = env.step(3)
 
-        self.assertEqual(env._decode(state), (7, 3))
+        self.assertEqual(env._decode(state), (8, 2))
         self.assertEqual(reward, 0.0)
         self.assertTrue(done)
 
@@ -149,7 +136,7 @@ class TestEnvs(unittest.TestCase):
             env.step(5)
         state, reward, done, _ = env.step(1)
 
-        self.assertEqual(env._decode(state), (7, 3))
+        self.assertEqual(env._decode(state), (6, 1))
         self.assertEqual(reward, 0.0)
         self.assertTrue(done)
 
@@ -172,7 +159,7 @@ class TestEnvs(unittest.TestCase):
             env.step(5)
         state, reward, done, _ = env.step(1)
 
-        self.assertEqual(env._decode(state), (7, 3))
+        self.assertEqual(env._decode(state), (6, 1))
         self.assertEqual(reward, 0.0)
         self.assertTrue(done)
 

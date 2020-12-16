@@ -15,9 +15,9 @@ class WindyGridworld(Gridworld):
 
     def _next_state(self, state, action):
         wind_strength = self._wind_strength(state)
-        state = super()._next_state(state, action)
+        state, _ = super()._next_state(state, action)
         state = self._apply_wind(state, wind_strength)
-        return self._clamp(state)
+        return self._clamp(state), 1.0
 
     def _apply_wind(self, state, strength):
         x, y = state

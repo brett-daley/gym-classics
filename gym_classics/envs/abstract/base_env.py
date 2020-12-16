@@ -36,19 +36,36 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
 
     def step(self, action):
         assert self.action_space.contains(action)
-        state = self._state
-        next_state = self._state = self._next_state(state, action)
-        reward = self._reward(state, action, next_state)
-        done = self._done(state, action, next_state)
+        next_state, reward, done = self._sample_step(self._state, action)
+        self._state = next_state
         return self._encode(next_state), reward, done, {}
 
-    @abstractmethod
-    def _next_state(self, state, action):
-        """Returns a (possibly random) next state S' induced by the state-action pair (S, A)."""
-        next_state = self._move(state, action)
-        if self._is_blocked(next_state):
+    def _sample_step(self, state, action):
+        """Samples an environment transition from the current state-action pair (S, A).
+
+        If the environment is deterministic, no need to override this method.
+        """
+        next_state, reward, done, _ = self._deterministic_step(state, action)
+        return next_state, reward, done
+
+    def _deterministic_step(self, state, action, *variables):
+        """An environment step that is deterministic conditioned on the given values
+        of the random variables (if there are any).
+
+        Do not override.
+        """
+        next_state, prob = self._next_state(state, action, *variables)
+        reward = self._reward(state, action, next_state)
+        done = self._done(state, action, next_state)
+        if done:
             next_state = state
-        return self._clamp(next_state)
+        return next_state, reward, done, prob
+
+    @abstractmethod
+    def _next_state(self, state, action, **random_variables):
+        """Returns a (possibly random) next state S' induced by the state-action pair (S, A)
+        along with its probability of occurence."""
+        raise NotImplementedError
 
     @abstractmethod
     def _reward(self, state, action, next_state):
@@ -94,10 +111,11 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
         rewards = np.zeros(n)
         probabilities = np.zeros(n)
 
-        for s, r, p, d in self._generate_transitions(state, action):
-            dones[s] = float(d)
-            rewards[s] = r
-            probabilities[s] += p
+        for ns, r, d, p in self._generate_transitions(self._decode(state), action):
+            ns = self._encode(ns)
+            dones[ns] = float(d)
+            rewards[ns] = r
+            probabilities[ns] += p
 
         i = np.nonzero(probabilities)
 

@@ -1,5 +1,3 @@
-from collections import deque
-
 from gym_classics.envs.abstract.gridworld import Gridworld
 
 
@@ -12,40 +10,28 @@ class NoisyGridworld(Gridworld):
         - 10% chance: action is rotated clockwise
     """
 
-    def _apply_move(self, state, action):
-        action = self._noisy_action(action)
-        return super()._apply_move(state, action)
+    def _sample_step(self, state, action):
+        noisy_action = self._noisy_action(action)
+        next_state, reward, done, _ = self._deterministic_step(state, action, noisy_action)
+        return next_state, reward, done
+
+    def _next_state(self, state, action, noisy_action):
+        next_state, _ = super()._next_state(state, noisy_action)
+        if action == noisy_action:
+            return next_state, 0.8
+        return next_state, 0.1
 
     def _noisy_action(self, action):
         p = self.np_random.rand()
-
-        # 80% chance the action is unaffected
-        if p < 0.8:
-            return action
-
-        # We use a deque for easy rotation
-        all_actions = deque(self.actions())
-        all_actions.rotate(-action)
-
-        # 10% chance: rotate the action counter-clockwise
-        if 0.8 <= x < 0.9:
-            all_actions.rotate(1)
         # 10% chance: rotate the action clockwise
-        else:
-            all_actions.rotate(-1)
-
-        return all_actions[action]
+        if 0.8 <= p < 0.9:
+            action += 1
+        # 10% chance: rotate the action counter-clockwise
+        elif 0.9 <= p:
+            action -= 1
+        return action % self.action_space.n
 
     def _generate_transitions(self, state, action):
-        state = self._decode(state)
-
-        all_actions = deque(self.actions())
-        all_actions.rotate(-action)
-
         for i in [-1, 0, 1]:
-            a = all_actions[i]
-            next_state = super()._next_state(state, a)
-            reward = self._reward(state, a, next_state)
-            prob = (0.8 if i == 0 else 0.1)
-            done = self._done(state, a, next_state)
-            yield self._encode(next_state), reward, prob, done
+            noisy_action = (action + i) % self.action_space.n
+            yield self._deterministic_step(state, action, noisy_action)

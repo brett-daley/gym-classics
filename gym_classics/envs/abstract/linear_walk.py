@@ -37,7 +37,8 @@ class LinearWalk(BaseEnv):
 
     def _next_state(self, state, action):
         state += [-1, 1][action]
-        return min(max(state, 0), self._length - 1)
+        next_state = min(max(state, 0), self._length - 1)
+        return next_state, 1.0
 
     def _reward(self, state, action, next_state):
         sa_pair = (state, action)
@@ -51,8 +52,4 @@ class LinearWalk(BaseEnv):
         return sa_pair in {(0, 0), (self._length - 1, 1)}
 
     def _generate_transitions(self, state, action):
-        next_state = self._next_state(state, action)
-        reward = self._reward(state, action, next_state)
-        prob = 1.0
-        done = self._done(state, action, next_state)
-        yield next_state, reward, prob, done
+        yield self._deterministic_step(state, action)
