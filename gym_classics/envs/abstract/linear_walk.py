@@ -24,7 +24,7 @@ class LinearWalk(BaseEnv):
         self._right_reward = right_reward
 
         assert length % 2 == 1
-        super().__init__(start=(length // 2), n_actions=2)
+        super().__init__(starts={length // 2}, n_actions=2)
 
     def _next_state(self, state, action):
         state += [-1, 1][action]

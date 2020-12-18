@@ -8,7 +8,7 @@ class ClassicGridworld(NoisyGridworld):
     """
 
     def __init__(self):
-        super().__init__(dims=(4, 3), start=(0, 0), blocks=frozenset({(1, 1)}))
+        super().__init__(dims=(4, 3), starts={(0, 0)}, blocks=frozenset({(1, 1)}))
 
     def _reward(self, state, action, next_state):
         return {(3, 1): -1.0, (3, 2): 1.0}.get(state, 0.0)

@@ -43,7 +43,6 @@ class TestValueIteration(unittest.TestCase):
         self._run_test('WindyGridworldKingsStochastic-v0', discount=1.0)
 
 
-    # TODO: need to complete racetracks
     # NOTE: the below tests are intentionally commented out because they're slow to run
 
     # def test_racetrack1(self):
@@ -75,15 +74,22 @@ class TestValueIteration(unittest.TestCase):
 
     def _print_racetrack(self, env, V):
         grid_values = np.zeros(env._dims)
+
+        reachable_positions = [pos for (pos, _) in env._reachable_states]
         velocities = [(x, y) for x in range(env._max_velocity + 1)
                              for y in range(env._max_velocity + 1)]
+
+        # Helper function to get reachable velocity pairings in this position
+        def valid_states_in_position(pos):
+            states = [(pos, vel) for vel in velocities]
+            return np.asarray([env._encode(s) for s in states if s in env._reachable_states])
 
         # Set each cell to be the maximum value over the velocities
         for x in range(env._dims[0]):
             for y in range(env._dims[1]):
                 pos = (x, y)
-                if env._reachable(pos):
-                    states = np.asarray([env._encode((pos, v)) for v in velocities])
+                if pos in reachable_positions:
+                    states = valid_states_in_position(pos)
                     grid_values[x, y] = np.max(V[states])
                 else:
                     grid_values[x, y] = np.nan

@@ -10,7 +10,7 @@ class CliffWalk(Gridworld):
     def __init__(self):
         self._cliff = frozenset((x, 0) for x in range(1, 11))
         self._goal = (11, 0)
-        super().__init__(dims=(12, 4), start=(0, 0))
+        super().__init__(dims=(12, 4), starts={(0, 0)})
 
     def _reward(self, state, action, next_state):
         return -100.0 if next_state in self._cliff else -1.0

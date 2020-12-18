@@ -9,8 +9,8 @@ import numpy as np
 class BaseEnv(gym.Env, metaclass=ABCMeta):
     """Abstract base class for shared functionality between all environments."""
 
-    def __init__(self, start, n_actions):
-        self._start = start
+    def __init__(self, starts, n_actions):
+        self._starts = tuple(starts)
         self.action_space = Discrete(n_actions)
 
         self._state = None
@@ -18,7 +18,8 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
 
         # Get reachable states by searching through the state space
         self._reachable_states = set()
-        self._search(start, self._reachable_states)
+        for s in self._starts:
+            self._search(s, self._reachable_states)
         self._reachable_states = frozenset(self._reachable_states)
 
         # Make look-up tables for quick state-to-integer conversion and vice-versa
@@ -30,6 +31,9 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
             self._decoder[i] = state
             i += 1
         self.observation_space = Discrete(i)
+
+        # Initialize the np_random module (user can override the seed later if desired)
+        self.seed()
 
     def _search(self, state, visited):
         """A recursive depth-first search that adds all reachable states to the visited set."""
@@ -47,7 +51,8 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
         return [seed]
 
     def reset(self):
-        self._state = self._start
+        i = self.np_random.choice(len(self._starts))
+        self._state = self._starts[i]
         return self._encode(self._state)
 
     def step(self, action):
