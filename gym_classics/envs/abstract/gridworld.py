@@ -14,6 +14,8 @@ class Gridworld(BaseEnv):
     def __init__(self, dims, start, blocks=frozenset(), n_actions=None):
         """Instantiates a gridworld environment.
 
+        State is a tuple representing agent's position.
+
         Args:
             dims
             start
@@ -26,8 +28,6 @@ class Gridworld(BaseEnv):
         if n_actions is None:
             n_actions = 4
         super().__init__(start, n_actions)
-
-        self._state = None  # Tuple representing agent's position
 
     def _next_state(self, state, action):
         next_state = self._move(state, action)

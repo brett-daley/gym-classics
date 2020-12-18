@@ -13,6 +13,7 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
         self._start = start
         self.action_space = Discrete(n_actions)
 
+        self._state = None
         self._transition_cache = {}
 
         # Get reachable states by searching through the state space
@@ -131,9 +132,8 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
             rewards[ns] = r
             probabilities[ns] += p
 
+        assert np.allclose(probabilities.sum(), 1.0), "transition probabilities must sum to 1"
         i = np.nonzero(probabilities)
-
-        assert np.allclose(probabilities.sum(), 1.0)
         transition = (next_states[i], rewards[i], dones[i], probabilities[i])
         self._transition_cache[sa_pair] = transition
         return transition

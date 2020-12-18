@@ -39,12 +39,11 @@ class TestValueIteration(unittest.TestCase):
     def test_windy_gridworld_kings_no_op(self):
         self._run_test('WindyGridworldKingsNoOp-v0', discount=1.0)
 
-    # TODO: need to complete stochastic windy gridworld and racetracks
-
-    # def test_windy_gridworld_kings_stochastic(self):
-    #     self._run_test('WindyGridworldKingsStochastic-v0', discount=1.0)
+    def test_windy_gridworld_kings_stochastic(self):
+        self._run_test('WindyGridworldKingsStochastic-v0', discount=1.0)
 
 
+    # TODO: need to complete racetracks
     # NOTE: the below tests are intentionally commented out because they're slow to run
 
     # def test_racetrack1(self):

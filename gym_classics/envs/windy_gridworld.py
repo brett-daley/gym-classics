@@ -1,5 +1,3 @@
-from gym.spaces import Discrete
-
 from gym_classics.envs.abstract.gridworld import Gridworld
 
 
@@ -86,16 +84,27 @@ class WindyGridworldKingsStochastic(WindyGridworldKings):
     Page 131 of Sutton & Barto (2018).
     """
 
-    def _wind_strength(self, state):
-        strength = super()._wind_strength(state)
+    def _sample_step(self, state, action):
+        # 1/3 chance each: decreased, unchanged, or increased wind strength
+        wind_delta = self.np_random.choice([-1, 0, 1])
+        next_state, reward, done, _ = self._deterministic_step(state, action, wind_delta)
+        return next_state, reward, done
 
-        # If there is no wind, do nothing
-        if strength == 0:
-            return strength
-
-        # 1/3 chance each: decreased, unchanged, or increased strength
-        return strength + self.np_random.choice([-1, 0, 1])
+    def _next_state(self, state, action, wind_delta):
+        wind_strength = super()._wind_strength(state)
+        state, _ = super()._next_state(state, action)
+        if wind_strength > 0:
+            wind_strength += wind_delta
+            state = self._apply_wind(state, wind_strength)
+            prob = 1/3
+        else:
+            prob = 1.0
+        return self._clamp(state), prob
 
     def _generate_transitions(self, state, action):
-        # TODO: must account for stochastic wind here
-        raise NotImplementedError
+        if self._wind_strength(state) == 0:
+            yield self._deterministic_step(state, action, 0)
+            return
+
+        for wind_delta in [-1, 0, 1]:
+            yield self._deterministic_step(state, action, wind_delta)

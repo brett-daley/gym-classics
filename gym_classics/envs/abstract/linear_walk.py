@@ -12,6 +12,8 @@ class LinearWalk(BaseEnv):
     def __init__(self, length, left_reward, right_reward):
         """Instantiates a linear walk environment.
 
+        State is an integer representing agent's position.
+
         Args:
             length
             start
@@ -23,8 +25,6 @@ class LinearWalk(BaseEnv):
 
         assert length % 2 == 1
         super().__init__(start=(length // 2), n_actions=2)
-
-        self._state = None  # Integer representing agent's position
 
     def _next_state(self, state, action):
         state += [-1, 1][action]
