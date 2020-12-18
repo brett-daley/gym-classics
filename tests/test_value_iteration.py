@@ -112,13 +112,9 @@ class TestValueIteration(unittest.TestCase):
         for y in reversed(range(env._dims[1])):
             for x in range(env._dims[0]):
                 state = (x, y)
-                # TODO: clean up this logic
-                try:
-                    if not env._is_blocked(state):
-                        s = env._encode(state)
-                        print(formatter(V[s]).rjust(maxlen), end=' ' * 2)
-                    else:
-                        raise KeyError
-                except KeyError:
+                if env._is_reachable(state):
+                    s = env._encode(state)
+                    print(formatter(V[s]).rjust(maxlen), end=' ' * 2)
+                else:
                     print(' ' * maxlen, end=' ' * 2)
             print()

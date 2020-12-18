@@ -11,32 +11,23 @@ class Gridworld(BaseEnv):
         3: left
     """
 
-    def __init__(self, dims, start, blocks=frozenset()):
+    def __init__(self, dims, start, blocks=frozenset(), n_actions=None):
         """Instantiates a gridworld environment.
 
         Args:
             dims
             start
             blocks
+            n_actions
         """
         self._dims = dims
-        self._start = start
         self._blocks = blocks
 
-        super().__init__(n_actions=4)
+        if n_actions is None:
+            n_actions = 4
+        super().__init__(start, n_actions)
 
         self._state = None  # Tuple representing agent's position
-
-    def reset(self):
-        self._state = self._start
-        return self._encode(self._state)
-
-    def _decoded_states(self):
-        for x in range(self._dims[0]):
-            for y in range(self._dims[1]):
-                state = (x, y)
-                if not self._is_blocked(state):
-                    yield state
 
     def _next_state(self, state, action):
         next_state = self._move(state, action)

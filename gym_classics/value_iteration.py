@@ -16,9 +16,9 @@ def value_iteration(env, discount, max_delta=1e-3):
             q_values = []
             V_old = V[s]
             for a in env.actions():
-                next_state, done, reward, prob = env.transitions(s, a)
-                bootstrap = (1.0 - done) * V[next_state]
-                q = np.sum(prob * (reward + discount * bootstrap))
+                next_states, rewards, dones, probs = env.model(s, a)
+                bootstraps = (1.0 - dones) * V[next_states]
+                q = np.sum(probs * (rewards + discount * bootstraps))
                 q_values.append(q)
             V[s] = max(q_values)
             delta = max(delta, abs(V[s] - V_old))

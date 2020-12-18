@@ -9,30 +9,45 @@ import numpy as np
 class BaseEnv(gym.Env, metaclass=ABCMeta):
     """Abstract base class for shared functionality between all environments."""
 
-    def __init__(self, n_actions):
+    def __init__(self, start, n_actions):
+        self._start = start
+        self.action_space = Discrete(n_actions)
+
         self._transition_cache = {}
 
+        # Get reachable states by searching through the state space
+        self._reachable_states = set()
+        self._search(start, self._reachable_states)
+        self._reachable_states = frozenset(self._reachable_states)
+
         # Make look-up tables for quick state-to-integer conversion and vice-versa
-        all_states = list(self._decoded_states())
         self._encoder = {}
         self._decoder = {}
         i = 0
-        for state in all_states:
+        for state in self._reachable_states:
             self._encoder[state] = i
             self._decoder[i] = state
             i += 1
+        self.observation_space = Discrete(i)
 
-        self.observation_space = Discrete(len(all_states))
-        self.action_space = Discrete(n_actions)
+    def _search(self, state, visited):
+        """A recursive depth-first search that adds all reachable states to the visited set."""
+        visited.add(state)
+        for a in self.actions():
+            for transition in self._generate_transitions(state, a):
+                next_state, _, done, prob = transition
+                if prob > 0.0:
+                    if not done and next_state not in visited:
+                        self._search(next_state, visited)
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
         self.action_space.seed(seed)
         return [seed]
 
-    @abstractmethod
     def reset(self):
-        raise NotImplementedError
+        self._state = self._start
+        return self._encode(self._state)
 
     def step(self, action):
         assert self.action_space.contains(action)
@@ -81,12 +96,6 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
         """Returns a generator over all possible environment states."""
         return range(self.observation_space.n)
 
-    @abstractmethod
-    def _decoded_states(self):
-        """Returns a generator over all possible underlying (non-encoded) states in the
-        environment. Used internally to initialize the encoder/decoder."""
-        raise NotImplementedError
-
     def _encode(self, state):
         """Converts a raw state into a unique integer."""
         return self._encoder[state]
@@ -95,11 +104,16 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
         """Reverts an encoded integer back to its raw state."""
         return self._decoder[i]
 
+    def _is_reachable(self, state):
+        """Returns True if the state can be reached from at least one start location,
+        False otherwise."""
+        return state in self._reachable_states
+
     def actions(self):
         """Returns a generator over all possible agent actions."""
         return range(self.action_space.n)
 
-    def transitions(self, state, action):
+    def model(self, state, action):
         """Returns the transitions from the given state-action pair."""
         sa_pair = (state, action)
         if sa_pair in self._transition_cache:
@@ -120,7 +134,7 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
         i = np.nonzero(probabilities)
 
         assert np.allclose(probabilities.sum(), 1.0)
-        transition = (next_states[i], dones[i], rewards[i], probabilities[i])
+        transition = (next_states[i], rewards[i], dones[i], probabilities[i])
         self._transition_cache[sa_pair] = transition
         return transition
 

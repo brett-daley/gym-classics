@@ -12,11 +12,6 @@ class CliffWalk(Gridworld):
         self._goal = (11, 0)
         super().__init__(dims=(12, 4), start=(0, 0))
 
-    def _decoded_states(self):
-        for s in super()._decoded_states():
-            if (s != self._goal) and (s not in self._cliff):
-                yield s
-
     def _reward(self, state, action, next_state):
         return -100.0 if next_state in self._cliff else -1.0
 

@@ -10,8 +10,8 @@ class WindyGridworld(Gridworld):
     """
 
     def __init__(self):
-        super().__init__(dims=(10, 7), start=(0, 3))
         self._goal = (7, 3)
+        super().__init__(dims=(10, 7), start=(0, 3))
 
     def _next_state(self, state, action):
         wind_strength = self._wind_strength(state)
@@ -34,7 +34,7 @@ class WindyGridworld(Gridworld):
             return 0
 
     def _reward(self, state, action, next_state):
-        return 0.0 if next_state == self._goal else -1.0
+        return 0.0 if self._done(state, action, next_state) else -1.0
 
     def _done(self, state, action, next_state):
         return next_state == self._goal
@@ -47,8 +47,8 @@ class WindyGridworldKings(WindyGridworld):
     """
 
     def __init__(self):
-        super().__init__()
-        self.action_space = Discrete(8)
+        self._goal = (7, 3)
+        super(WindyGridworld, self).__init__(dims=(10, 7), start=(0, 3), n_actions=8)
 
     def _move(self, state, action):
         if action < 4:
@@ -71,8 +71,8 @@ class WindyGridworldKingsNoOp(WindyGridworldKings):
     """
 
     def __init__(self):
-        super().__init__()
-        self.action_space = Discrete(9)
+        self._goal = (7, 3)
+        super(WindyGridworld, self).__init__(dims=(10, 7), start=(0, 3), n_actions=9)
 
     def _move(self, state, action):
         if action == 8:  # No-op

@@ -8,15 +8,11 @@ class SparseGridworld(NoisyGridworld):
     """
 
     def __init__(self):
-        super().__init__(dims=(10, 8), start=(1, 3))
         self._goal = (6, 3)
+        super().__init__(dims=(10, 8), start=(1, 3))
 
     def _reward(self, state, action, next_state):
-        if state == self._goal or next_state == self._goal:
-            return 1.0
-        return 0.0
+        return 1.0 if self._done(state, action, next_state) else 0.0
 
     def _done(self, state, action, next_state):
-        if state == self._goal or next_state == self._goal:
-            return True
-        return False
+        return next_state == self._goal

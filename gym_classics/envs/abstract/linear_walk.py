@@ -22,18 +22,9 @@ class LinearWalk(BaseEnv):
         self._right_reward = right_reward
 
         assert length % 2 == 1
-        self._start = length // 2
-
-        super().__init__(n_actions=2)
+        super().__init__(start=(length // 2), n_actions=2)
 
         self._state = None  # Integer representing agent's position
-
-    def reset(self):
-        self._state = self._start
-        return self._start
-
-    def _decoded_states(self):
-        return range(self._length)
 
     def _next_state(self, state, action):
         state += [-1, 1][action]
