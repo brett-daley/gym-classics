@@ -84,11 +84,10 @@ class WindyGridworldKingsStochastic(WindyGridworldKings):
     Page 131 of Sutton & Barto (2018).
     """
 
-    def _sample_step(self, state, action):
+    def _sample_random_elements(self, state, action):
         # 1/3 chance each: decreased, unchanged, or increased wind strength
         wind_delta = self.np_random.choice([-1, 0, 1])
-        next_state, reward, done, _ = self._deterministic_step(state, action, wind_delta)
-        return next_state, reward, done
+        return [wind_delta]
 
     def _next_state(self, state, action, wind_delta):
         wind_strength = super()._wind_strength(state)

@@ -45,11 +45,10 @@ class Racetrack(Gridworld):
         Y = [track.shape[0] - 1 - y for y in Y]
         return frozenset(zip(X, Y))
 
-    def _sample_step(self, state, action):
+    def _sample_random_elements(self, state, action):
         # Only 90% chance that the velocity is successfully modified
         success = (self.np_random.rand() < 0.9)
-        next_state, reward, done, _ = self._deterministic_step(state, action, success)
-        return next_state, reward, done
+        return [success]
 
     def _next_state(self, state, action, success):
         ((pos_x, pos_y), (vel_x, vel_y)) = state

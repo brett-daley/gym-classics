@@ -57,25 +57,27 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
 
     def step(self, action):
         assert self.action_space.contains(action)
-        next_state, reward, done = self._sample_step(self._state, action)
+        state = self._state
+        elements = self._sample_random_elements(state, action)
+        next_state, reward, done, _ = self._deterministic_step(state, action, *elements)
         self._state = next_state
         return self._encode(next_state), reward, done, {}
 
-    def _sample_step(self, state, action):
-        """Samples an environment transition from the current state-action pair (S, A).
+    def _sample_random_elements(self, state, action):
+        """Samples values for random elements (if any) that influence the environment
+        transition from the current state-action pair (S, A).
 
         If the environment is deterministic, no need to override this method.
         """
-        next_state, reward, done, _ = self._deterministic_step(state, action)
-        return next_state, reward, done
+        return ()
 
-    def _deterministic_step(self, state, action, *variables):
+    def _deterministic_step(self, state, action, *random_elements):
         """An environment step that is deterministic conditioned on the given values
         of the random variables (if there are any).
 
         Do not override.
         """
-        next_state, prob = self._next_state(state, action, *variables)
+        next_state, prob = self._next_state(state, action, *random_elements)
         reward = self._reward(state, action, next_state)
         done = self._done(state, action, next_state)
         if done:
@@ -83,9 +85,10 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
         return next_state, reward, done, prob
 
     @abstractmethod
-    def _next_state(self, state, action, **random_variables):
-        """Returns a (possibly random) next state S' induced by the state-action pair (S, A)
-        along with its probability of occurence."""
+    def _next_state(self, state, action, *random_elements):
+        """Returns the next state S' induced by the state-action pair (S, A), which must
+        be deterministic conditioned on the values of any random_elements. Also returns
+        the probability that this particular transition occurred."""
         raise NotImplementedError
 
     @abstractmethod

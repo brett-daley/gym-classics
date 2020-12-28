@@ -10,10 +10,8 @@ class NoisyGridworld(Gridworld):
         - 10% chance: action is rotated clockwise
     """
 
-    def _sample_step(self, state, action):
-        noisy_action = self._noisy_action(action)
-        next_state, reward, done, _ = self._deterministic_step(state, action, noisy_action)
-        return next_state, reward, done
+    def _sample_random_elements(self, state, action):
+        return [self._noisy_action(action)]
 
     def _next_state(self, state, action, noisy_action):
         next_state, _ = super()._next_state(state, noisy_action)
