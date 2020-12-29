@@ -3,10 +3,10 @@ import unittest
 import gym
 import numpy as np
 
+from gym_classics.dynamic_programming import value_iteration
 from gym_classics.envs.abstract.gridworld import Gridworld
 from gym_classics.envs.abstract.racetrack import Racetrack
 from gym_classics.envs.jacks_car_rental import JacksCarRental
-from gym_classics.value_iteration import value_iteration
 
 
 class TestValueIteration(unittest.TestCase):
@@ -69,11 +69,11 @@ class TestValueIteration(unittest.TestCase):
             self._print_racetrack(env, V)
         elif isinstance(env, Gridworld):
             # Print the values in the shape of the gridworld
-            self._print_gridworld(env, V)
+            print_gridworld(env, V)
         elif isinstance(env, JacksCarRental):
             # Some extra bookkeeping allows us to treat the car rental as a gridworld
             env._dims = (21, 21)
-            self._print_gridworld(env, V, decimals=0)
+            print_gridworld(env, V, decimals=0)
         else:
             # Just print a list of the encoded/decoded states and their values
             for s in env.states():
@@ -116,18 +116,21 @@ class TestValueIteration(unittest.TestCase):
                     print(' ' * maxlen, end=' ')
             print()
 
-    def _print_gridworld(self, env, V, decimals=2):
-        # First get the string length of the longest number
-        formatter = lambda v: ('{:+.' + str(decimals) + 'f}').format(v)
-        maxlen = max([len(formatter(v)) for v in V])
 
-        # Now we can actually print the values
-        for y in reversed(range(env._dims[1])):
-            for x in range(env._dims[0]):
-                state = (x, y)
-                if env._is_reachable(state):
-                    s = env._encode(state)
-                    print(formatter(V[s]).rjust(maxlen), end=' ' * 2)
-                else:
-                    print(' ' * maxlen, end=' ' * 2)
-            print()
+def print_gridworld(env, array, decimals=2, separator=' ' * 2, signed=True):
+    # First get the string length of the longest number
+    def formatter(x):
+        string = '{:' + ('+' if signed else '') + '.' + str(decimals) + 'f}'
+        return string.format(x)
+    maxlen = max([len(formatter(x)) for x in array])
+
+    # Now we can actually print the values
+    for y in reversed(range(env._dims[1])):
+        for x in range(env._dims[0]):
+            state = (x, y)
+            if env._is_reachable(state):
+                s = env._encode(state)
+                print(formatter(array[s]).rjust(maxlen), end=separator)
+            else:
+                print(' ' * maxlen, end=separator)
+        print()
