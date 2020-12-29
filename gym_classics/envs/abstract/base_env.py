@@ -9,18 +9,22 @@ import numpy as np
 class BaseEnv(gym.Env, metaclass=ABCMeta):
     """Abstract base class for shared functionality between all environments."""
 
-    def __init__(self, starts, n_actions):
+    def __init__(self, starts, n_actions, reachable_states=None):
         self._starts = tuple(starts)
         self.action_space = Discrete(n_actions)
 
         self._state = None
         self._transition_cache = {}
 
-        # Get reachable states by searching through the state space
-        self._reachable_states = set()
-        for s in self._starts:
-            self._search(s, self._reachable_states)
-        self._reachable_states = frozenset(self._reachable_states)
+        if reachable_states is None:
+            # Get reachable states by searching through the state space
+            self._reachable_states = set()
+            for s in self._starts:
+                self._search(s, self._reachable_states)
+            self._reachable_states = frozenset(self._reachable_states)
+        else:
+            # Use the provided reachable states
+            self._reachable_states = frozenset(reachable_states)
 
         # Make look-up tables for quick state-to-integer conversion and vice-versa
         self._encoder = {}

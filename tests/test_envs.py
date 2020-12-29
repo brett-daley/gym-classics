@@ -94,6 +94,10 @@ class TestEnvs(unittest.TestCase):
         self._test_interface('FourRooms-v0')
 
 
+    def test_jacks_car_rental(self):
+        self._test_interface('JacksCarRental-v0')
+
+
     def test_racetrack1(self):
         self._test_interface('Racetrack1-v0')
 
