@@ -7,21 +7,21 @@ from gym_classics.envs.abstract.base_env import BaseEnv
 class JacksCarRental(BaseEnv):
     """Jack's Car Rental problem converted into an episodic task.
 
-    States are 2-tuples of the number of cars at both locations.
+    States are 2-tuples of the number of cars at both parking lots.
 
     Page 81 of Sutton & Barto (2018, 2nd ed.).
     """
 
     def __init__(self):
-        # Poission distributions for requests and dropoffs at both locations
-        self._loc1_requests_distr = TruncatedPoisson(3)
-        self._loc1_dropoffs_distr = TruncatedPoisson(3)
-        self._loc2_requests_distr = TruncatedPoisson(4)
-        self._loc2_dropoffs_distr = TruncatedPoisson(2)
+        # Poission distributions for requests and dropoffs at both lots
+        self._lot1_requests_distr = TruncatedPoisson(3)
+        self._lot1_dropoffs_distr = TruncatedPoisson(3)
+        self._lot2_requests_distr = TruncatedPoisson(4)
+        self._lot2_dropoffs_distr = TruncatedPoisson(2)
 
-        # Precompute the factored transition and reward functions for both locations
-        self.P1, self.R1 = open_to_close(self._loc1_requests_distr, self._loc1_dropoffs_distr)
-        self.P2, self.R2 = open_to_close(self._loc2_requests_distr, self._loc2_dropoffs_distr)
+        # Precompute the factored transition and reward functions for both lots
+        self.P1, self.R1 = open_to_close(self._lot1_requests_distr, self._lot1_dropoffs_distr)
+        self.P2, self.R2 = open_to_close(self._lot2_requests_distr, self._lot2_dropoffs_distr)
 
         # Episode terminates after 100 days (timesteps)
         self._t = 0
@@ -34,8 +34,8 @@ class JacksCarRental(BaseEnv):
     def seed(self, seed=None):
         seeds = super().seed(seed)
         # Make sure each distribution has access to the np_random module
-        for distr in [self._loc1_requests_distr, self._loc1_dropoffs_distr,
-                      self._loc2_requests_distr, self._loc2_dropoffs_distr]:
+        for distr in [self._lot1_requests_distr, self._lot1_dropoffs_distr,
+                      self._lot2_requests_distr, self._lot2_dropoffs_distr]:
             distr.np_random = self.np_random
         return seeds
 
@@ -48,12 +48,12 @@ class JacksCarRental(BaseEnv):
         return super().step(action)
 
     def _sample_random_elements(self, state, action):
-        loc1_requests = self._loc1_requests_distr.sample()
-        loc1_dropoffs = self._loc1_dropoffs_distr.sample()
-        loc2_requests = self._loc2_requests_distr.sample()
-        loc2_dropoffs = self._loc2_dropoffs_distr.sample()
-        requests = [loc1_requests, loc2_requests]
-        dropoffs = [loc1_dropoffs, loc2_dropoffs]
+        lot1_requests = self._lot1_requests_distr.sample()
+        lot1_dropoffs = self._lot1_dropoffs_distr.sample()
+        lot2_requests = self._lot2_requests_distr.sample()
+        lot2_dropoffs = self._lot2_dropoffs_distr.sample()
+        requests = [lot1_requests, lot2_requests]
+        dropoffs = [lot1_dropoffs, lot2_dropoffs]
         return (requests, dropoffs)
 
     def _deterministic_step(self, state, action, next_state):
@@ -61,25 +61,24 @@ class JacksCarRental(BaseEnv):
         action -= 5
 
         # Move cars (we can't move more cars than are available at the source lot)
-        state = list(state)
         moved_cars = clip(action, -state[1], state[0])
-        state[0] -= moved_cars
-        state[1] += moved_cars
+        state_after_move = [state[0] - moved_cars, state[1] + moved_cars]
 
         # Both lots evolve independently so we can multiply these to get the transition probability
-        prob = self.P1[state[0]][next_state[0]] * self.P2[state[1]][next_state[1]]
+        prob = self.P1[state_after_move[0]][next_state[0]] * self.P2[state_after_move[1]][next_state[1]]
 
-        reward = self._reward(state, action)
+        reward = self._reward(state_after_move, action)
         done = (self._t == self._time_limit)
         if done:
             next_state = state
         return tuple(next_state), reward, done, prob
 
-    def _reward(self, state, action):
+    def _reward(self, state_after_move, action):
         # Reward = (10 * expected requests - 2 * attempted moves)
         # Note that this implicitly discourages the agent from trying to move more cars
         # than are available, which makes the optimal action unambiguous
-        return -2.0 * abs(action) + self.R1[state[0]] + self.R2[state[1]]
+        n1, n2 = state_after_move
+        return -2.0 * abs(action) + self.R1[n1] + self.R2[n2]
 
     # We need to override these abstract methods but we don't actually use them
     def _next_state(self):
@@ -100,8 +99,8 @@ class JacksCarRentalModified(JacksCarRental):
 
     Page 82, Exercise 4.7 of Sutton & Barto (2018, 2nd ed.).
     """
-    def _reward(self, state, action):
-        reward = super()._reward(state, action)
+    def _reward(self, state_after_move, action):
+        reward = super()._reward(state_after_move, action)
 
         # Jack's employee can move a car from lot 1 to lot 2 for free, so we save $2
         # whenever at least one car is moved to lot 2
@@ -110,7 +109,7 @@ class JacksCarRentalModified(JacksCarRental):
 
         # Jack has to pay for overnight parking: $4 per lot with more than 10 cars
         for i in range(2):
-            if state[i] > 10:
+            if state_after_move[i] > 10:
                 reward -= 4.0
 
         return reward

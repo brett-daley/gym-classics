@@ -27,9 +27,12 @@ class TestPolicyIteration(unittest.TestCase):
         policy = policy_iteration(env, discount)
 
         print(env_id + ':')
+        kwargs = dict(decimals=0, separator=' ', signed=False)
+
         if isinstance(env, JacksCarRental):
-            # Some extra bookkeeping allows us to treat the car rental as a gridworld
             env._dims = (21, 21)
             policy -= 5
-        print_gridworld(env, policy, decimals=0, separator=' ', signed=False)
+            kwargs['transpose'] = True
+
+        print_gridworld(env, policy, **kwargs)
         print(flush=True)

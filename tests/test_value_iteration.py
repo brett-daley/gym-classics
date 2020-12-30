@@ -120,7 +120,7 @@ class TestValueIteration(unittest.TestCase):
             print()
 
 
-def print_gridworld(env, array, decimals=2, separator=' ' * 2, signed=True):
+def print_gridworld(env, array, decimals=2, separator=' ' * 2, signed=True, transpose=False):
     # First get the string length of the longest number
     def formatter(x):
         string = '{:' + ('+' if signed else '') + '.' + str(decimals) + 'f}'
@@ -130,7 +130,7 @@ def print_gridworld(env, array, decimals=2, separator=' ' * 2, signed=True):
     # Now we can actually print the values
     for y in reversed(range(env._dims[1])):
         for x in range(env._dims[0]):
-            state = (x, y)
+            state = (x, y) if not transpose else (y, x)
             if env._is_reachable(state):
                 s = env._encode(state)
                 print(formatter(array[s]).rjust(maxlen), end=separator)
