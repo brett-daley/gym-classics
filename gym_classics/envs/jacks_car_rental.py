@@ -93,6 +93,29 @@ class JacksCarRental(BaseEnv):
             yield self._deterministic_step(state, action, next_state)
 
 
+class JacksCarRentalModified(JacksCarRental):
+    """Jack's Car Rental problem with two modifications to the reward function:
+        1. One of Jack's employees can move a car from lot 1 to 2 for free
+        2. Overnight parking costs $4 per lot with more than 10 cars
+
+    Page 82, Exercise 4.7 of Sutton & Barto (2018, 2nd ed.).
+    """
+    def _reward(self, state, action):
+        reward = super()._reward(state, action)
+
+        # Jack's employee can move a car from lot 1 to lot 2 for free, so we save $2
+        # whenever at least one car is moved to lot 2
+        if action > 0:
+            reward += 2.0
+
+        # Jack has to pay for overnight parking: $4 per lot with more than 10 cars
+        for i in range(2):
+            if state[i] > 10:
+                reward -= 4.0
+
+        return reward
+
+
 class TruncatedPoisson:
     def __init__(self, mean, threshold=1e-3):
         assert isinstance(mean, int) and mean > 0

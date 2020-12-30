@@ -17,6 +17,10 @@ class TestPolicyIteration(unittest.TestCase):
         self._run_test('JacksCarRental-v0', discount=0.9)
 
 
+    def test_jacks_car_rental_modified(self):
+        self._run_test('JacksCarRentalModified-v0', discount=0.9)
+
+
     def _run_test(self, env_id, discount):
         env = gym.make(env_id)
         assert isinstance(env, Gridworld) or isinstance(env, JacksCarRental)

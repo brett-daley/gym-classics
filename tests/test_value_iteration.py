@@ -49,6 +49,9 @@ class TestValueIteration(unittest.TestCase):
     # def test_jacks_car_rental(self):
     #     self._run_test('JacksCarRental-v0', discount=0.9)
 
+    # def test_jacks_car_rental_modified(self):
+    #     self._run_test('JacksCarRentalModified-v0', discount=0.9)
+
     # def test_racetrack1(self):
     #     self._run_test('Racetrack1-v0', discount=0.9)
 

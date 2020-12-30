@@ -37,6 +37,11 @@ register(
 )
 
 register(
+    id='JacksCarRentalModified-v0',
+    entry_point='gym_classics.envs.jacks_car_rental:JacksCarRentalModified'
+)
+
+register(
     id='Racetrack1-v0',
     entry_point='gym_classics.envs.racetracks:Racetrack1'
 )
