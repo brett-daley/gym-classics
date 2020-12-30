@@ -61,6 +61,7 @@ def policy_improvement(env, discount, policy, V_policy, precision=1e-3):
     for s in env.states():
         Q_values = [backup(env, discount, V_policy, s, a) for a in env.actions()]
         policy[s] = np.argmax(Q_values)
+        V_policy[s] = max(Q_values)
 
     stable = np.logical_or(
         policy == policy_old,

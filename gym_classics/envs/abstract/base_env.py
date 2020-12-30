@@ -144,7 +144,8 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
             rewards[ns] = r
             probabilities[ns] += p
 
-        assert np.allclose(probabilities.sum(), 1.0), "transition probabilities must sum to 1"
+        assert (probabilities >= 0.0).all(), "transition probabilities must be nonnegative"
+        assert abs(probabilities.sum() - 1.0) <= 0.01, "transition probabilities must sum to 1"
         i = np.nonzero(probabilities)
         transition = (next_states[i], rewards[i], dones[i], probabilities[i])
         self._transition_cache[sa_pair] = transition

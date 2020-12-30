@@ -19,12 +19,16 @@ class JacksCarRental(BaseEnv):
         self._loc2_requests_distr = TruncatedPoisson(4)
         self._loc2_dropoffs_distr = TruncatedPoisson(2)
 
+        # Precompute the factored transition and reward functions for both locations
+        self.P1, self.R1 = open_to_close(lambda_requests=3, lambda_dropoffs=3)
+        self.P2, self.R2 = open_to_close(lambda_requests=4, lambda_dropoffs=2)
+
         # Episode terminates after 100 days (timesteps)
         self._t = 0
         self._time_limit = 100
 
         # Bypass the search for reachable states because we know the whole grid is valid
-        states = {(i, j) for i in range(21) for j in range(21)}
+        states = [(i, j) for i in range(21) for j in range(21)]
         super().__init__(starts={(10, 10)}, n_actions=11, reachable_states=states)
 
     def seed(self, seed=None):
@@ -52,59 +56,41 @@ class JacksCarRental(BaseEnv):
         dropoffs = [loc1_dropoffs, loc2_dropoffs]
         return (requests, dropoffs)
 
-    def _deterministic_step(self, state, action, requests, dropoffs):
-        next_state, prob, moved_cars, fulfilled_requests = self._next_state(state, action, requests, dropoffs)
-        reward = self._reward(moved_cars, fulfilled_requests)
-        done = self._done()
+    def _deterministic_step(self, state, action, next_state):
+        # Convert the action to a +/- delta representing the cars moved from lot 1 to 2
+        action -= 5
+
+        # Move cars (we can't move more cars than are available at the source lot)
+        state = list(state)
+        moved_cars = clip(action, -state[1], state[0])
+        state[0] -= moved_cars
+        state[1] += moved_cars
+
+        # Both lots evolve independently so we can multiply these to get the transition probability
+        prob = self.P1[state[0]][next_state[0]] * self.P2[state[1]][next_state[1]]
+
+        reward = self._reward(state, action)
+        done = (self._t == self._time_limit)
         if done:
             next_state = state
-        return next_state, reward, done, prob
+        return tuple(next_state), reward, done, prob
 
-    def _next_state(self, state, action, requests, dropoffs):
-        # Compute the probability of this requests/dropoffs pair
-        prob = self._loc1_requests_distr.pmf(requests[0]) \
-                * self._loc1_dropoffs_distr.pmf(dropoffs[0]) \
-                * self._loc2_requests_distr.pmf(requests[1]) \
-                * self._loc2_dropoffs_distr.pmf(dropoffs[1])
+    def _reward(self, state, action):
+        # Reward = (10 * expected requests - 2 * attempted moves)
+        # Note that this implicitly discourages the agent from trying to move more cars
+        # than are available, which makes the optimal action unambiguous
+        return -2.0 * abs(action) + self.R1[state[0]] + self.R2[state[1]]
 
-        # Convert the action to a +/- delta representing the cars moved from loc 1 to 2
-        action -= 5
-        # We can't move more cars than are available at the source location
-        if action >= 0:
-            moved_cars = min(state[0], action)
-        else:
-            moved_cars = -min(state[1], abs(action))
-
-        # Move cars
-        state = list(state)
-        state[0] = max(state[0] - moved_cars, 0)
-        state[1] = min(state[1] + moved_cars, 25)
-
-        for i in range(2):  # For each location
-            # Fulfill requests
-            requests[i] = min(state[i], requests[i])
-            state[i] -= requests[i]
-
-            # Fulfill dropoffs
-            state[i] = min(state[i] + dropoffs[i], 20)
-
-        fulfilled_requests = sum(requests)
-        return tuple(state), prob, moved_cars, fulfilled_requests
-
-    def _reward(self, moved_cars, fulfilled_requests):
-        return -2.0 * abs(moved_cars) + 10.0 * fulfilled_requests
-
+    # We need to override these abstract methods but we don't actually use them
+    def _next_state(self):
+        pass
     def _done(self):
-        return self._t == self._time_limit
+        pass
 
     def _generate_transitions(self, state, action):
-        for loc1_requests in self._loc1_requests_distr.domain():
-            for loc1_dropoffs in self._loc1_dropoffs_distr.domain():
-                for loc2_requests in self._loc2_requests_distr.domain():
-                    for loc2_dropoffs in self._loc2_dropoffs_distr.domain():
-                        requests = [loc1_requests, loc2_requests]
-                        dropoffs = [loc1_dropoffs, loc2_dropoffs]
-                        yield self._deterministic_step(state, action, requests, dropoffs)
+        for next_state in self.states():
+            next_state = self._decode(next_state)
+            yield self._deterministic_step(state, action, next_state)
 
 
 class TruncatedPoisson:
@@ -134,3 +120,53 @@ class TruncatedPoisson:
 
     def sample(self):
         return self.np_random.choice(self.values, p=self.Pr)
+
+
+def clip(x, low, high):
+    """A scalar version of numpy.clip. Much faster because it avoids memory allocation."""
+    return min(max(x, low), high)
+
+
+def open_to_close(lambda_requests, lambda_dropoffs, precision=1e-3):
+    """Calculates the transition function P and the reward function R over the two
+    Poisson distributions: i.e. requests and dropoffs. Since the Poisson distribution's
+    domain is infinite, the calculation is terminated within the given precision."""
+    P = np.zeros((26, 21), dtype=np.float32)
+    R = np.zeros(26)
+
+    # How many cars were requested
+    requests = 0
+    request_prob = poisson(lambda_requests).pmf(requests)
+
+    # Once the probability falls below the precision, it's small enough to ignore
+    while request_prob > precision:
+        # We can have up to 25 starting cars (20 + 5 sent over)
+        for n in range(26):
+            # Expected reward: 10 * expected number rented out
+            R[n] += (10 * request_prob * min(requests, n))
+
+        # How many cars were returned
+        dropoffs = 0
+        dropoff_prob = poisson(lambda_dropoffs).pmf(dropoffs)
+
+        # Again, once the probability falls below the precision, it's small enough to ignore
+        while dropoff_prob > precision:
+            for n in range(26):
+                # We can satisfy as many requests as we have cars available
+                satisfied_requests = min(requests, n)
+
+                # Can't have more than 20 or less than 0 cars at the end of the day.
+                new_n = max(0, min(20, (n + dropoffs) - satisfied_requests))
+
+                # Increment the transition probability
+                P[n][new_n] += request_prob * dropoff_prob
+
+            # Increment dropoffs, recalculate the probability mass
+            dropoffs += 1
+            dropoff_prob = poisson(lambda_dropoffs).pmf(dropoffs)
+
+        # Increment requests, recalculate the probability mass
+        requests += 1
+        request_prob = poisson(lambda_requests).pmf(requests)
+
+    return P, R
