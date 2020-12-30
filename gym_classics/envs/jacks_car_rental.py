@@ -20,8 +20,8 @@ class JacksCarRental(BaseEnv):
         self._loc2_dropoffs_distr = TruncatedPoisson(2)
 
         # Precompute the factored transition and reward functions for both locations
-        self.P1, self.R1 = open_to_close(lambda_requests=3, lambda_dropoffs=3)
-        self.P2, self.R2 = open_to_close(lambda_requests=4, lambda_dropoffs=2)
+        self.P1, self.R1 = open_to_close(self._loc1_requests_distr, self._loc1_dropoffs_distr)
+        self.P2, self.R2 = open_to_close(self._loc2_requests_distr, self._loc2_dropoffs_distr)
 
         # Episode terminates after 100 days (timesteps)
         self._t = 0
@@ -94,32 +94,31 @@ class JacksCarRental(BaseEnv):
 
 
 class TruncatedPoisson:
-    def __init__(self, mean, precision=0.1):
+    def __init__(self, mean, threshold=1e-3):
         assert isinstance(mean, int) and mean > 0
-        assert 0.0 < precision < 1.0
+        assert 0.0 < threshold < 1.0
         distr = poisson(mean)
 
-        # Find the largest i such that 1 - sum_i Pr[i] < precision
+        # Find the largest i such that Pr[i] > threshold
         self.max = 0
-        while 1.0 - distr.cdf(self.max) > precision:
+        while distr.pmf(self.max + 1) > threshold:
             self.max += 1
 
-        # Pre-compute the probability table and renormalize the sum to 1
-        self.Pr = np.asarray([distr.pmf(i) for i in self.domain()])
-        assert np.allclose(self.Pr.sum(), 1.0, rtol=0.0, atol=precision)
-        self.Pr /= self.Pr.sum()
-
         # Save the domain as a list for efficient sampling
-        self.values = list(self.domain())
+        self.domain = list(range(self.max + 1))
 
-    def domain(self):
-        return range(self.max + 1)
+        # Pre-compute the probability table
+        self.Pr = [distr.pmf(i) for i in self.domain]
+        # Normalize so we can sample with np.random.choice
+        # TODO: doesn't this mismatch create bias between learning vs DP?
+        self.norm_Pr = np.asarray(self.Pr)
+        self.norm_Pr /= self.norm_Pr.sum()
 
-    def pmf(self, i):
-        return self.Pr[i]
+    def __iter__(self):
+        return zip(self.domain, self.Pr)
 
     def sample(self):
-        return self.np_random.choice(self.values, p=self.Pr)
+        return self.np_random.choice(self.domain, p=self.norm_Pr)
 
 
 def clip(x, low, high):
@@ -127,7 +126,7 @@ def clip(x, low, high):
     return min(max(x, low), high)
 
 
-def open_to_close(lambda_requests, lambda_dropoffs, precision=1e-3):
+def open_to_close(requests_distr, dropoffs_distr):
     """Calculates the transition function P and the reward function R over the two
     Poisson distributions: i.e. requests and dropoffs. Since the Poisson distribution's
     domain is infinite, the calculation is terminated within the given precision."""
@@ -135,38 +134,20 @@ def open_to_close(lambda_requests, lambda_dropoffs, precision=1e-3):
     R = np.zeros(26)
 
     # How many cars were requested
-    requests = 0
-    request_prob = poisson(lambda_requests).pmf(requests)
-
-    # Once the probability falls below the precision, it's small enough to ignore
-    while request_prob > precision:
-        # We can have up to 25 starting cars (20 + 5 sent over)
+    for requests, request_prob in requests_distr:
+        # We can have up to 25 starting cars (20 capacity + 5 sent over)
         for n in range(26):
             # Expected reward: 10 * expected number rented out
-            R[n] += (10 * request_prob * min(requests, n))
+            R[n] += (10.0 * request_prob * min(requests, n))
 
         # How many cars were returned
-        dropoffs = 0
-        dropoff_prob = poisson(lambda_dropoffs).pmf(dropoffs)
-
-        # Again, once the probability falls below the precision, it's small enough to ignore
-        while dropoff_prob > precision:
+        for dropoffs, dropoff_prob in dropoffs_distr:
             for n in range(26):
                 # We can satisfy as many requests as we have cars available
                 satisfied_requests = min(requests, n)
-
-                # Can't have more than 20 or less than 0 cars at the end of the day.
-                new_n = max(0, min(20, (n + dropoffs) - satisfied_requests))
-
+                # Can't have more than 20 cars at the end of the day
+                new_n = clip(n + dropoffs - satisfied_requests, 0, 20)
                 # Increment the transition probability
                 P[n][new_n] += request_prob * dropoff_prob
-
-            # Increment dropoffs, recalculate the probability mass
-            dropoffs += 1
-            dropoff_prob = poisson(lambda_dropoffs).pmf(dropoffs)
-
-        # Increment requests, recalculate the probability mass
-        requests += 1
-        request_prob = poisson(lambda_requests).pmf(requests)
 
     return P, R
