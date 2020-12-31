@@ -126,7 +126,7 @@ class JacksCarRentalModified(JacksCarRental):
 
 
 class TruncatedPoisson:
-    def __init__(self, mean, threshold=1e-3):
+    def __init__(self, mean, threshold=1e-6):
         assert isinstance(mean, int) and mean > 0
         assert 0.0 < threshold < 1.0
         distr = poisson(mean)
@@ -140,17 +140,15 @@ class TruncatedPoisson:
         self.domain = list(range(self.max + 1))
 
         # Pre-compute the probability table
-        self.Pr = [distr.pmf(i) for i in self.domain]
+        self.Pr = np.asarray([distr.pmf(i) for i in self.domain])
         # Normalize so we can sample with np.random.choice
-        # TODO: doesn't this mismatch create bias between learning vs DP?
-        self.norm_Pr = np.asarray(self.Pr)
-        self.norm_Pr /= self.norm_Pr.sum()
+        self.Pr /= self.Pr.sum()
 
     def __iter__(self):
         return zip(self.domain, self.Pr)
 
     def sample(self):
-        return self.np_random.choice(self.domain, p=self.norm_Pr)
+        return self.np_random.choice(self.domain, p=self.Pr)
 
 
 def clip(x, low, high):
