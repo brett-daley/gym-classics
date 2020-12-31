@@ -45,9 +45,21 @@ class JacksCarRental(BaseEnv):
 
     def step(self, action):
         self._t += 1
-        return super().step(action)
+        assert self.action_space.contains(action)
+        state = self._state
+        action = decode_action(action)
 
-    def _sample_random_elements(self, state, action):
+        next_state = move_cars(state, action)
+
+        requests, dropoffs = self._sample_random_elements()
+        for i in range(len(next_state)):
+            next_state[i] = handle_requests_and_dropoffs(next_state[i], requests[i], dropoffs[i])
+
+        next_state, reward, done, _ = self._deterministic_step(state, action, next_state)
+        self._state = next_state
+        return self._encode(next_state), reward, done, {}
+
+    def _sample_random_elements(self):
         lot1_requests = self._lot1_requests_distr.sample()
         lot1_dropoffs = self._lot1_dropoffs_distr.sample()
         lot2_requests = self._lot2_requests_distr.sample()
@@ -57,21 +69,21 @@ class JacksCarRental(BaseEnv):
         return (requests, dropoffs)
 
     def _deterministic_step(self, state, action, next_state):
-        # Convert the action to a +/- delta representing the cars moved from lot 1 to 2
-        action -= 5
-
-        # Move cars (we can't move more cars than are available at the source lot)
-        moved_cars = clip(action, -state[1], state[0])
-        state_after_move = [state[0] - moved_cars, state[1] + moved_cars]
+        state_after_move = move_cars(state, action)
 
         # Both lots evolve independently so we can multiply these to get the transition probability
-        prob = self.P1[state_after_move[0]][next_state[0]] * self.P2[state_after_move[1]][next_state[1]]
+        prob = self.P1[state_after_move[0]][next_state[0]] \
+             * self.P2[state_after_move[1]][next_state[1]]
 
         reward = self._reward(state_after_move, action)
-        done = (self._t == self._time_limit)
+        done = self._done()
         if done:
             next_state = state
         return tuple(next_state), reward, done, prob
+
+    def _next_state(self):
+        # We need to override this abstract method but we don't actually use it
+        raise NotImplementedError
 
     def _reward(self, state_after_move, action):
         # Reward = (10 * expected requests - 2 * attempted moves)
@@ -80,13 +92,11 @@ class JacksCarRental(BaseEnv):
         n1, n2 = state_after_move
         return -2.0 * abs(action) + self.R1[n1] + self.R2[n2]
 
-    # We need to override these abstract methods but we don't actually use them
-    def _next_state(self):
-        pass
     def _done(self):
-        pass
+        return self._t == self._time_limit
 
     def _generate_transitions(self, state, action):
+        action = decode_action(action)
         for next_state in self.states():
             next_state = self._decode(next_state)
             yield self._deterministic_step(state, action, next_state)
@@ -148,6 +158,24 @@ def clip(x, low, high):
     return min(max(x, low), high)
 
 
+def decode_action(i):
+    # Convert the integer to a +/- delta representing the cars moved from lot 1 to 2
+    return i - 5
+
+
+def move_cars(state, action):
+    # We can't move more cars than are available at the source lot
+    moved_cars = clip(action, -state[1], state[0])
+    return [state[0] - moved_cars, state[1] + moved_cars]
+
+
+def handle_requests_and_dropoffs(cars, requests, dropoffs):
+    # We can satisfy as many requests as we have cars available
+    satisfied_requests = min(cars, requests)
+    # Can't have more than 20 cars at the end of the day
+    return clip(cars + dropoffs - satisfied_requests, 0, 20)
+
+
 def open_to_close(requests_distr, dropoffs_distr):
     """Calculates the transition function P and the reward function R over the two
     Poisson distributions: i.e. requests and dropoffs. Since the Poisson distribution's
@@ -165,10 +193,7 @@ def open_to_close(requests_distr, dropoffs_distr):
         # How many cars were returned
         for dropoffs, dropoff_prob in dropoffs_distr:
             for n in range(26):
-                # We can satisfy as many requests as we have cars available
-                satisfied_requests = min(requests, n)
-                # Can't have more than 20 cars at the end of the day
-                new_n = clip(n + dropoffs - satisfied_requests, 0, 20)
+                new_n = handle_requests_and_dropoffs(n, requests, dropoffs)
                 # Increment the transition probability
                 P[n][new_n] += request_prob * dropoff_prob
 
