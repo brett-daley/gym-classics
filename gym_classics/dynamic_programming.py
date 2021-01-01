@@ -20,6 +20,14 @@ def value_iteration(env, discount, precision=1e-3):
             return V
 
 
+def value_iteration_with_samples(env, discount, precision=1e-3, n=100):
+    model = env.model
+    env.model = SampleBackup(env, n)
+    V = value_iteration(env, discount, precision)
+    env.model = model
+    return V
+
+
 def policy_iteration(env, discount, precision=1e-3):
     assert 0.0 <= discount <= 1.0
     assert precision > 0.0
@@ -75,3 +83,49 @@ def backup(env, discount, V, state, action):
     next_states, rewards, dones, probs = env.model(state, action)
     bootstraps = (1.0 - dones) * V[next_states]
     return np.sum(probs * (rewards + discount * bootstraps))
+
+
+class SampleBackup:
+    def __init__(self, env, n):
+        self._env = env
+        self._n = n
+        self._cache = {}
+
+    def __call__(self, state, action):
+        sa_pair = (state, action)
+        if sa_pair not in self._cache:
+            self._add_to_cache(state, action)
+        return self._cache[sa_pair]
+
+    def _add_to_cache(self, state, action):
+        env = self._env
+
+        if hasattr(env, '_t'):
+            t = env._t
+        else:
+            t = 0
+
+        n = env.observation_space.n
+        next_states = np.arange(n)
+        dones = np.zeros(n)
+        rewards = np.zeros(n)
+        probabilities = np.zeros(n)
+
+        for _ in range(self._n):
+            # Reset environment state each time
+            env._state = env._decode(state)
+
+            # Sample an outcome from this state-action pair
+            ns, r, d, _ = env.step(action)
+            env._t = t
+
+            dones[ns] = float(d)
+            rewards[ns] = r
+            probabilities[ns] += 1.0
+
+        probabilities /= probabilities.sum()
+        np.nan_to_num(probabilities, copy=False)
+
+        i = np.nonzero(probabilities)
+        transition = (next_states[i], rewards[i], dones[i], probabilities[i])
+        self._cache[(state, action)] = transition
