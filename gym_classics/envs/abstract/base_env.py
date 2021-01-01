@@ -39,6 +39,8 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
         # Initialize the np_random module (user can override the seed later if desired)
         self.seed()
 
+        self._use_sparse_model = False  # Set True for debug only
+
     def _search(self, state, visited):
         """A recursive depth-first search that adds all reachable states to the visited set."""
         visited.add(state)
@@ -146,8 +148,13 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
 
         assert (probabilities >= 0.0).all(), "transition probabilities must be nonnegative"
         assert abs(probabilities.sum() - 1.0) <= 0.01, "transition probabilities must sum to 1"
-        i = np.nonzero(probabilities)
-        transition = (next_states[i], rewards[i], dones[i], probabilities[i])
+
+        if not self._use_sparse_model:
+            i = np.nonzero(probabilities)
+            transition = (next_states[i], rewards[i], dones[i], probabilities[i])
+        else:
+            transition = (next_states, rewards, dones, probabilities)
+
         self._transition_cache[sa_pair] = transition
         return transition
 

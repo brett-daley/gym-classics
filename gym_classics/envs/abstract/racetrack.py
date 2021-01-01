@@ -1,6 +1,7 @@
 import numpy as np
 
 from gym_classics.envs.abstract.gridworld import Gridworld
+from gym_classics.utils import clip
 
 
 class Racetrack(Gridworld):
@@ -56,8 +57,8 @@ class Racetrack(Gridworld):
         if success:
             # Update velocity
             delta_vel_x, delta_vel_y = self._action_decoder[action]
-            vel_x = np.clip(vel_x + delta_vel_x, 0, self._max_velocity)
-            vel_y = np.clip(vel_y + delta_vel_y, 0, self._max_velocity)
+            vel_x = clip(vel_x + delta_vel_x, 0, self._max_velocity)
+            vel_y = clip(vel_y + delta_vel_y, 0, self._max_velocity)
 
         # Update position
         pos_x += vel_x

@@ -2,6 +2,7 @@ import numpy as np
 from scipy.stats import poisson
 
 from gym_classics.envs.abstract.base_env import BaseEnv
+from gym_classics.utils import clip
 
 
 class JacksCarRental(BaseEnv):
@@ -149,11 +150,6 @@ class TruncatedPoisson:
 
     def sample(self):
         return self.np_random.choice(self.domain, p=self.Pr)
-
-
-def clip(x, low, high):
-    """A scalar version of numpy.clip. Much faster because it avoids memory allocation."""
-    return min(max(x, low), high)
 
 
 def decode_action(i):
