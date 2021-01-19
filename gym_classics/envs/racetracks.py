@@ -4,6 +4,8 @@ from gym_classics.envs.abstract.racetrack import Racetrack
 
 
 class Racetrack1(Racetrack):
+    """"""
+
     def __init__(self):
         # TODO: this track was copied from Lawson's RL course but it looks like the
         # dimensions are slightly off
@@ -44,6 +46,8 @@ class Racetrack1(Racetrack):
 
 
 class Racetrack2(Racetrack):
+    """"""
+
     def __init__(self):
         track = np.asarray([
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
