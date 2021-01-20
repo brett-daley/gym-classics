@@ -5,7 +5,7 @@ import gym
 from gym_classics.dynamic_programming import policy_iteration
 from gym_classics.envs.abstract.gridworld import Gridworld
 from gym_classics.envs.jacks_car_rental import JacksCarRental
-from tests.test_value_iteration import print_gridworld
+from gym_classics.utils import print_gridworld
 
 
 class TestPolicyIteration(unittest.TestCase):
