@@ -102,7 +102,7 @@ class Env:
 ```
 
 The usage of `states`, `actions`, and `model` are discussed in
-[Example: Dynamic Programming](example:-dynamic-programming).
+[Example: Dynamic Programming](#example:-dynamic-programming).
 
 State and action spaces for all environments are type `gym.spaces.Discrete`.
 The size of these spaces can be queried as usual:
@@ -111,7 +111,9 @@ This means that states and actions are represented as unique integers, which is 
 for advanced `numpy` indexing.
 Note that states and actions are enumerated in an arbitrary order for each environment.
 
-<!-- TODO: paragraph here about _{encode/decode}_{state/action} -->
+> **Tip:** Gym Classics environments also implement private methods called `_encode` and `_decode` which convert states between their integral and human-interpretable forms.
+> These should never be used by the agent, but can be useful for displaying results or debugging.
+> See the abstract [BaseEnv](gym_classics/envs/abstract/base_env.py) class for implementation details.
 
 ## Example: Reinforcement Learning
 
