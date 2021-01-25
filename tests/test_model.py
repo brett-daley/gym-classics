@@ -49,11 +49,9 @@ class TestModel(unittest.TestCase):
     # def test_jacks_car_rental_modified(self):
     #     self._run_test('JacksCarRentalModified-v0', discount=0.9)
 
-    # TODO: possible bug in reward/done functions
     # def test_racetrack1(self):
     #     self._run_test('Racetrack1-v0', discount=0.9)
 
-    # TODO: possible bug in reward/done functions
     # def test_racetrack2(self):
     #     self._run_test('Racetrack2-v0', discount=0.9)
 
@@ -75,15 +73,22 @@ class TestModel(unittest.TestCase):
                 states1, rewards1, dones1, probs1 = self._approximate_model(env, s, a, n)
                 states2, rewards2, dones2, probs2 = env.model(s, a)
 
-                # States and dones should be the same
+                # States should be the same
                 self.assertTrue((states1 == states2).all())
 
-                # Rewards/dones should also be the same, but there may be extremely rare
-                # transitions that will not be sampled (e.g. Jack's Car Rental).
-                # Instead, just make sure that all of the sampled transitions are correct.
-                nonnan = np.logical_not(np.isnan(rewards1))
-                self.assertTrue((rewards1[nonnan] == rewards2[nonnan]).all())
-                self.assertTrue((dones1[nonnan] == dones2[nonnan]).all())
+                # We artificially set s' = s when the episode is done to ensure that
+                # the next state always exists in the MDP. However, this makes it
+                # impossible to uniquely infer the reward/done from a state-action pair
+                # when the environment is stochastic. We therefore only check the
+                # deterministic case.
+                if deterministic:
+                    # Rewards/dones should be the same, but there may be extremely rare
+                    # transitions that will not be sampled (e.g. Jack's Car Rental).
+                    # Instead, just make sure that all of the sampled transitions are correct.
+                    # We use nan as an indicator for transitions that were not sampled.
+                    not_nan = np.logical_not(np.isnan(rewards1))
+                    self.assertTrue((rewards1[not_nan] == rewards2[not_nan]).all())
+                    self.assertTrue((dones1[not_nan] == dones2[not_nan]).all())
 
                 if not deterministic:
                     # Make sure that any impossible transition according to the model
