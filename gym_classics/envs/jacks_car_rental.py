@@ -6,11 +6,22 @@ from gym_classics.utils import clip
 
 
 class JacksCarRental(BaseEnv):
-    """Jack's Car Rental problem converted into an episodic task.
+    """A challenging management problem where a rental company must balance the number
+    of cars between two parking lots to maximize its profit. On each timestep, a
+    Poisson-distributed number of requests and returns come into each lot. (The lots
+    have different statistics.) The agent may then move up to 5 cars between the lots
+    for a proportional fee. The lots can never have more than 20 cars each, and a lot
+    earns money for a request only if it has a car available.
+    Reference: cite{3} (page 81, example 4.2).
 
-    States are 2-tuples of the number of cars at both parking lots.
+    **states:** The number of cars at both lots.
 
-    Page 81 of Sutton & Barto (2018, 2nd ed.).
+    **actions:** Move a number of cars {-5, ..., 5}. Positive numbers represent moving
+    cars from lot 1 to lot 2; negative numbers represent moving cars from lot 2 to lot 1.
+
+    **rewards:** +10 for each satisfied request. -2 for each car moved.
+
+    **termination:** 100 timesteps elapse.
     """
 
     def __init__(self):
@@ -104,11 +115,13 @@ class JacksCarRental(BaseEnv):
 
 
 class JacksCarRentalModified(JacksCarRental):
-    """Jack's Car Rental problem with two modifications to the reward function:
-        1. One of Jack's employees can move a car from lot 1 to 2 for free
-        2. Overnight parking costs $4 per lot with more than 10 cars
+    """Same as `JacksCarRental` but with two modifications to the reward function:
 
-    Page 82, Exercise 4.7 of Sutton & Barto (2018, 2nd ed.).
+    1. One of Jack's employees can move a car from lot 1 to 2 for free.
+
+    2. Overnight parking incurs -4 reward per lot with more than 10 cars.
+
+    Reference: cite{3} (page 82, exercise 4.7).
     """
     def _reward(self, state_after_move, action):
         reward = super()._reward(state_after_move, action)

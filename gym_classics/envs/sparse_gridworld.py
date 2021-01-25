@@ -2,9 +2,19 @@ from gym_classics.envs.abstract.noisy_gridworld import NoisyGridworld
 
 
 class SparseGridworld(NoisyGridworld):
-    """Dyna Maze.
+    """A 10x8 featureless gridworld. The agent starts in the mid-left cell, and the goal
+    is slightly to the right of center. To make it more challenging, the same 80-10-10
+    transition probabilities from `ClassicGridworld` are used. Great for testing various
+    forms of credit assignment in the presence of noise.
+    Reference: cite{3} (page 147, figure 7.4)
 
-    Page 147 of Sutton & Barto (2018).
+    **states:** Agent cell location.
+
+    **actions:** Move up/right/down/left.
+
+    **rewards:** +1 for reaching the goal.
+
+    **termination:** Reaching the goal.
     """
 
     def __init__(self):

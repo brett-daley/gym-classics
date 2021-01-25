@@ -2,9 +2,19 @@ from gym_classics.envs.abstract.gridworld import Gridworld
 
 
 class WindyGridworld(Gridworld):
-    """Windy Gridworld.
+    """A 10x7 deterministic gridworld where some columns are affected by an upward wind.
+    The agent starts in the mid-left cell, and the goal is to the right of center. If an
+    agent executes an action from a cell with wind, the resulting position is given by
+    the vector sum of the action's effect and the wind.
+    Reference: cite{3} (page 130, example 6.5)
 
-    Page 130 of Sutton & Barto (2018).
+    **states:** Agent cell location.
+
+    **actions:** Move up/right/down/left.
+
+    **rewards:** -1 for all transitions except those reaching the goal.
+
+    **termination:** Reaching the goal.
     """
 
     def __init__(self):
@@ -39,9 +49,10 @@ class WindyGridworld(Gridworld):
 
 
 class WindyGridworldKings(WindyGridworld):
-    """Windy Gridworld with King's moves.
+    """Same as `WindyGridworld` but with diagonal "King's" moves permitted.
+    Reference: cite{3} (page 131, exercise 6.9).
 
-    Page 131 of Sutton & Barto (2018).
+    **actions:** 4 cardinal directions and 4 intermediate directions.
     """
 
     def __init__(self):
@@ -64,8 +75,9 @@ class WindyGridworldKings(WindyGridworld):
 
 class WindyGridworldKingsNoOp(WindyGridworldKings):
     """Windy Gridworld with King's moves and a no-op action.
+    Reference: cite{3} (page 131, exercise 6.9).
 
-    Page 131 of Sutton & Barto (2018).
+    **actions:** 8 cardinal/intermediate directions, plus a "no-op" (do nothing) action.
     """
 
     def __init__(self):
@@ -79,9 +91,9 @@ class WindyGridworldKingsNoOp(WindyGridworldKings):
 
 
 class WindyGridworldKingsStochastic(WindyGridworldKings):
-    """Windy Gridworld with King's moves and stochastic wind.
-
-    Page 131 of Sutton & Barto (2018).
+    """Same as `WindyGridworldKings` but windy cells exhibit stochastic behavior:
+    -1, +0, or +1 wind strength with probability 1/3 each.
+    Reference: cite{3} (page 131, exercise 6.10)
     """
 
     def _sample_random_elements(self, state, action):
