@@ -1,6 +1,7 @@
 from importlib import import_module
 from inspect import cleandoc
 import os
+import re
 import sys
 
 import gym
@@ -34,6 +35,15 @@ def main():
 
     # Fill in the template
     template = template.replace('GLOSSARY', glossary)
+
+    # Auto-cite
+    pattern = re.compile('cite\{([0-9]+)\}')
+    while True:
+        match = pattern.search(template)
+        if not match:
+            break
+        n = match.groups()[0]
+        template = pattern.sub(f"[[{n}]](#references)", template)
 
     # Write to the readme
     with open('README.md', 'w') as f:        
