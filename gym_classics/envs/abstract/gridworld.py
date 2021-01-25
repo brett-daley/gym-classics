@@ -2,26 +2,9 @@ from gym_classics.envs.abstract.base_env import BaseEnv
 
 
 class Gridworld(BaseEnv):
-    """Abstract class for creating gridworld-type environments.
-
-    Actions:
-        0: up
-        1: right
-        2: down
-        3: left
-    """
+    """Abstract class for creating gridworld-type environments."""
 
     def __init__(self, dims, starts, blocks=frozenset(), n_actions=None):
-        """Instantiates a gridworld environment.
-
-        State is a tuple representing agent's position.
-
-        Args:
-            dims
-            start
-            blocks
-            n_actions
-        """
         self._dims = dims
         self._blocks = blocks
 
