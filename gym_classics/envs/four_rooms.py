@@ -15,4 +15,4 @@ class FourRooms(NoisyGridworld):
         return 1.0 if self._done(state, action, next_state) else 0.0
 
     def _done(self, state, action, next_state):
-        return next_state == self._goal
+        return state == self._goal
