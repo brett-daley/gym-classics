@@ -117,7 +117,7 @@ Note that states and actions are enumerated in an arbitrary order for each envir
 
 ## Example: Reinforcement Learning
 
-Let's test the classic Q-Learning algorithm [] on `ClassicGridworld-v0`.
+Let's test the classic Q-Learning algorithm [[4]](#references) on `ClassicGridworld-v0`.
 
 ```python
 import gym
@@ -295,6 +295,10 @@ is working!
 
 ## References
 
-1. Sutton & Barto (2018)
+1. [Russell & Norvig. Artificial Intelligence: A Modern Approach. 2009, 3rd Ed.](https://cs.calvin.edu/courses/cs/344/kvlinden/resources/AIMA-3rd-edition.pdf)
 
-1. Watkins (1989)
+1. [Sutton, Precup, & Singh. Between MDPs and Semi-MDPs: A Framework for Temporal Abstraction in Reinforcement Learning. 1999.](https://people.cs.umass.edu/~barto/courses/cs687/Sutton-Precup-Singh-AIJ99.pdf)
+
+1. [Sutton & Barto. Reinforcement Learning: An Introduction. 2018, 2nd Ed.](http://incompleteideas.net/book/RLbook2020.pdf)
+
+1. [Watkins. Learning from Delayed Rewards. 1989.](http://www.cs.rhul.ac.uk/~chrisw/new_thesis.pdf)
