@@ -2,12 +2,7 @@ from gym_classics.envs.abstract.base_env import BaseEnv
 
 
 class LinearWalk(BaseEnv):
-    """Abstract class for creating 1-dimensional linear walks.
-
-    Actions:
-        0: left
-        1: right
-    """
+    """Abstract class for creating 1-dimensional linear walks."""
 
     def __init__(self, length, left_reward, right_reward):
         """Instantiates a linear walk environment.

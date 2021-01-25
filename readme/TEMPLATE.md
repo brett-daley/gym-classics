@@ -273,7 +273,7 @@ is working!
 ## Environments Glossary
 
 | Env ID | Description |
-| --- | --- |
+| :-: | --- |
 GLOSSARY
 
 ---

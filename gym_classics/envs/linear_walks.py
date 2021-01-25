@@ -2,9 +2,16 @@ from gym_classics.envs.abstract.linear_walk import LinearWalk
 
 
 class Walk5(LinearWalk):
-    """A linear walk with 5 states. Reward is 0 on the left and +1 on the right.
+    """A 5-state deterministic linear walk. Ideal for implementing random walk
+    experiments. Reference: cite{3} (page 125).
 
-    Page 125 of Sutton & Barto (2018).
+    **states:** Discrete positions {0, ..., 4} on the number line.
+
+    **actions:** Move left/right.
+
+    **rewards:** +1 for reaching the extreme right.
+
+    **termination:** Reaching the extreme left or right.
     """
 
     def __init__(self):
@@ -12,9 +19,8 @@ class Walk5(LinearWalk):
 
 
 class Walk19(LinearWalk):
-    """A linear walk with 19 states. Reward is -1 on the left and +1 on the right.
-
-    Page 145 of Sutton & Barto (2018).
+    """Same as `5Walk` but with 19 states and an additional -1 reward for reaching the
+    extreme left. Reference: cite{3} (page 145).
     """
 
     def __init__(self):

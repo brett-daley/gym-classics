@@ -25,7 +25,9 @@ def main():
 
         # Convert the docstring to a markdown table entry
         description = cleandoc(env_cls.__doc__)
-        description = description.rstrip().replace('\n', '<br>')
+        description = description.rstrip()
+        description = description.replace('\n\n', '<br><br>')
+        description = description.replace('\n', ' ')
         glossary += f"| `{s.id}` | {description} |\n"
 
     # Load the template

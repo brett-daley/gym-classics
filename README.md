@@ -273,15 +273,15 @@ is working!
 ## Environments Glossary
 
 | Env ID | Description |
-| --- | --- |
-| `5Walk-v0` | A linear walk with 5 states. Reward is 0 on the left and +1 on the right.<br><br>Page 125 of Sutton & Barto (2018). |
-| `19Walk-v0` | A linear walk with 19 states. Reward is -1 on the left and +1 on the right.<br><br>Page 145 of Sutton & Barto (2018). |
+| :-: | --- |
+| `5Walk-v0` | A 5-state deterministic linear walk. Ideal for implementing random walk experiments. Reference: [[4]](#references) (page 125).<br><br>**states:** Discrete positions {0, ..., 4} on the number line.<br><br>**actions:** Move left/right.<br><br>**rewards:** +1 for reaching the extreme right.<br><br>**termination:** Reaching the extreme left or right. |
+| `19Walk-v0` | Same as `5Walk` but with 19 states and an additional -1 reward for reaching the extreme left. Reference: [[4]](#references) (page 145). |
 | `ClassicGridworld-v0` | 'Classic' Gridworld.<br><br>Norvig & Russel (2020, 4th ed.). |
 | `CliffWalk-v0` | Cliff Walking.<br><br>Page 132 of Sutton & Barto (2018). |
 | `DynaMaze-v0` | Dyna Maze.<br><br>Page 165 of Sutton & Barto (2018). |
 | `FourRooms-v0` |  |
 | `JacksCarRental-v0` | Jack's Car Rental problem converted into an episodic task.<br><br>States are 2-tuples of the number of cars at both parking lots.<br><br>Page 81 of Sutton & Barto (2018, 2nd ed.). |
-| `JacksCarRentalModified-v0` | Jack's Car Rental problem with two modifications to the reward function:<br>    1. One of Jack's employees can move a car from lot 1 to 2 for free<br>    2. Overnight parking costs $4 per lot with more than 10 cars<br><br>Page 82, Exercise 4.7 of Sutton & Barto (2018, 2nd ed.). |
+| `JacksCarRentalModified-v0` | Jack's Car Rental problem with two modifications to the reward function:     1. One of Jack's employees can move a car from lot 1 to 2 for free     2. Overnight parking costs $4 per lot with more than 10 cars<br><br>Page 82, Exercise 4.7 of Sutton & Barto (2018, 2nd ed.). |
 | `Racetrack1-v0` |  |
 | `Racetrack2-v0` |  |
 | `SparseGridworld-v0` | Dyna Maze.<br><br>Page 147 of Sutton & Barto (2018). |
