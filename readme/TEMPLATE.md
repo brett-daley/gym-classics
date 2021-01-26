@@ -272,8 +272,8 @@ is working!
 
 ## Environments Glossary
 
-| Env ID | Description |
-| :-: | --- |
+| # | Env ID | Description |
+| :-: | :-: | --- |
 GLOSSARY
 
 ---

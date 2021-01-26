@@ -18,7 +18,7 @@ def main():
 
     # Pull the docstring from each environment class to build the glossary    
     glossary = ''
-    for s in env_specs:\
+    for i, s in enumerate(env_specs):
         # Get the environment class
         path, name = s.entry_point.split(':')
         module = import_module(path)
@@ -29,7 +29,7 @@ def main():
         description = description.rstrip()
         description = description.replace('\n\n', '<br><br>')
         description = description.replace('\n', ' ')
-        glossary += f"| `{s.id}` | {description} |\n"
+        glossary += f"| {i+1} | `{s.id}` | {description} |\n"
 
     # Load the template
     template_path = os.path.join('readme', 'TEMPLATE.md')
