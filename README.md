@@ -1,7 +1,7 @@
 # Gym Classics
 ![pypi](https://img.shields.io/badge/pypi-0.0.0-blue)
 [![license](https://img.shields.io/badge/license-GPL%20v3.0-blue)](./LICENSE)
-![python](https://img.shields.io/badge/python-3.5%2B-blue)
+![python](https://img.shields.io/badge/python-3.5%2B-green)
 
 Gym Classics is a collection of well-known discrete MDPs from the reinforcement learning
 literature implemented as OpenAI Gym environments.
@@ -18,9 +18,9 @@ test and debug new learning methods.
 
 1. [API Overview](#api-overview)
 
-1. [Example: Reinforcement Learning](#reinforcement-learning)
+1. [Example: Reinforcement Learning](#example-reinforcement-learning)
 
-1. [Example: Dynamic Programming](#dynamic-programming)
+1. [Example: Dynamic Programming](#example-dynamic-programming)
 
 1. [Environments Glossary](#environments-glossary)
 
@@ -102,7 +102,7 @@ class Env:
 ```
 
 The usage of `states`, `actions`, and `model` are discussed in
-[Example: Dynamic Programming](#example:-dynamic-programming).
+[Example: Dynamic Programming](#example-dynamic-programming).
 
 State and action spaces for all environments are type `gym.spaces.Discrete`.
 The size of these spaces can be queried as usual:
@@ -241,7 +241,7 @@ In practice, only advanced users will need to conduct backups manually like this
 Value Iteration and other dynamic programming methods are already implemented in
 [dynamic_programming.py](gym_classics/dynamic_programming.py).
 Let's use Value Iteration to check that our Q-Learning implemention from
-[Example: Reinforcement Learning](#example:-reinforcement-learning) is correct:
+[Example: Reinforcement Learning](#example-reinforcement-learning) is correct:
 
 ```python
 # Compute the near-optimal values with Value Iteration
