@@ -3,16 +3,17 @@ from gym_classics.envs.abstract.gridworld import Gridworld
 
 class WindyGridworld(Gridworld):
     """A 10x7 deterministic gridworld where some columns are affected by an upward wind.
-    The agent starts in the mid-left cell, and the goal is to the right of center. If an
-    agent executes an action from a cell with wind, the resulting position is given by
-    the vector sum of the action's effect and the wind.
-    Reference: cite{3} (page 130, example 6.5)
+    The agent starts in cell (0, 3) and the goal is at cell (7, 3). If an agent executes
+    an action from a cell with wind, the resulting position is given by the vector sum
+    of the action's effect and the wind.
 
-    **states:** Agent cell location.
+    **reference:** cite{3} (page 130, example 6.5).
+
+    **state:** Grid location.
 
     **actions:** Move up/right/down/left.
 
-    **rewards:** -1 for all transitions except those reaching the goal.
+    **rewards:** -1 for all transitions unless the episode terminates.
 
     **termination:** Reaching the goal.
     """
@@ -50,9 +51,10 @@ class WindyGridworld(Gridworld):
 
 class WindyGridworldKings(WindyGridworld):
     """Same as `WindyGridworld` but with diagonal "King's" moves permitted.
-    Reference: cite{3} (page 131, exercise 6.9).
 
-    **actions:** 4 cardinal directions and 4 intermediate directions.
+    **reference:** cite{3} (page 131, exercise 6.9).
+
+    **actions:** Move in the 4 cardinal directions and 4 intermediate directions.
     """
 
     def __init__(self):
@@ -74,10 +76,11 @@ class WindyGridworldKings(WindyGridworld):
 
 
 class WindyGridworldKingsNoOp(WindyGridworldKings):
-    """Windy Gridworld with King's moves and a no-op action.
-    Reference: cite{3} (page 131, exercise 6.9).
+    """Same as `WindyGridworldKings` but with an extra "no-op" (do nothing) action.
 
-    **actions:** 8 cardinal/intermediate directions, plus a "no-op" (do nothing) action.
+    **reference:** cite{3} (page 131, exercise 6.9).
+
+    **actions:** Move in the 8 cardinal/intermediate directions or take a no-op action.
     """
 
     def __init__(self):
@@ -93,7 +96,8 @@ class WindyGridworldKingsNoOp(WindyGridworldKings):
 class WindyGridworldKingsStochastic(WindyGridworldKings):
     """Same as `WindyGridworldKings` but windy cells exhibit stochastic behavior:
     -1, +0, or +1 wind strength with probability 1/3 each.
-    Reference: cite{3} (page 131, exercise 6.10)
+
+    **reference:** cite{3} (page 131, exercise 6.10).
     """
 
     def _sample_random_elements(self, state, action):

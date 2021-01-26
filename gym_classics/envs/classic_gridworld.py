@@ -2,17 +2,20 @@ from gym_classics.envs.abstract.noisy_gridworld import NoisyGridworld
 
 
 class ClassicGridworld(NoisyGridworld):
-    """A pedagogical 4x3 gridworld with the agent starting in the bottom-left cell.
-    Actions are noisy; with a 10% chance each, a move action may rotated by 90
-    degrees clockwise or counter-clockwise.
-    Reference: cite{1} (page 646).
+    """A 4x3 pedagogical gridworld. The agent starts in the bottom-left cell. Actions
+    are noisy; with a 10% chance each, a move action may be rotated by 90 degrees
+    clockwise or counter-clockwise (the "80-10-10 rule"). Cell (1, 1) is blocked and
+    cannot be occupied by the agent.
 
-    **states**: Grid cells.
+    **reference:** cite{1} (page 646).
+
+    **state**: Grid location.
 
     **actions**: Move up/right/down/left.
 
-    **rewards**: +1 for taking any action in the top-right cell. -1 for taking any
-    action in the mid-right cell.
+    **rewards**: +1 for taking any action in cell (3, 2). -1 for taking any
+    action in cell (3, 1). *NOTE:* The original version adds a -0.04 penalty to all other
+    transitions, but this implementation does not.
 
     **termination**: Earning a nonzero reward.
     """

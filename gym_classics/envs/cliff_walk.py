@@ -2,12 +2,13 @@ from gym_classics.envs.abstract.gridworld import Gridworld
 
 
 class CliffWalk(Gridworld):
-    """The Cliff Walking task used to contrast Sarsa and Q-Learning. The agent begins
-    in the bottom-left cell and must navigate to the goal (bottom-right cell) without
-    entering the region labeled "The Cliff."
-    Reference: cite{3} (page 132, example 6.6).
+    """The Cliff Walking task, a 12x4 gridworld often used to contrast Sarsa with
+    Q-Learning. The agent begins in the bottom-left cell and must navigate to the goal
+    (bottom-right cell) without entering the region along the bottom ("The Cliff").
 
-    **states**: Grid cells.
+    **reference:** cite{3} (page 132, example 6.6).
+
+    **state**: Grid location.
 
     **actions**: Move up/right/down/left.
 

@@ -5,15 +5,6 @@ class LinearWalk(BaseEnv):
     """Abstract class for creating 1-dimensional linear walks."""
 
     def __init__(self, length, left_reward, right_reward):
-        """Instantiates a linear walk environment.
-
-        State is an integer representing agent's position.
-
-        Args:
-            length
-            start
-            rewards
-        """
         self._length = length
         self._left_reward = left_reward
         self._right_reward = right_reward

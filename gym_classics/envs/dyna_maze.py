@@ -3,14 +3,15 @@ from gym_classics.envs.abstract.gridworld import Gridworld
 
 class DynaMaze(Gridworld):
     """A 9x6 deterministic gridworld with barriers to make navigation more challenging.
-    The agent starts on the left side at coordinates (0, 3); the goal is the top-right cell.
-    Reference: cite{3} (page 192).
+    The agent starts in cell (0, 3); the goal is the top-right cell.
 
-    **states**: Agent cell location.
+    **reference:** cite{3} (page 164, example 8.1).
+
+    **state**: Grid location.
 
     **actions**: Move up/right/down/left.
 
-    **rewards**: +1 for reaching the goal.
+    **rewards**: +1 for episode termination.
 
     **termination**: Reaching the goal.
     """
