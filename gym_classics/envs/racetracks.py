@@ -4,7 +4,26 @@ from gym_classics.envs.abstract.racetrack import Racetrack
 
 
 class Racetrack1(Racetrack):
-    """"""
+    """A gridworld-type racetrack where the agent must traverse a right turn and reach
+    the finish line as quickly as possible. The agent begins at a random location on the
+    starting line and can only directly control the velocity of the racecar (not its
+    position). Each velocity component can never be negative nor greater than 5. If the
+    car goes out of bounds, it is reset to a random location on the starting line without
+    terminating the episode. NOTE: While the original version forbids both velocity
+    components from being zero simultaneously, no such restriction is enforced in this
+    implementation.
+    Reference: cite{3} (page 112, figure 5.5, left).
+
+    **states:** Racecar position and velocity.
+
+    **actions:** Changes to the racecar's *velocity* (not position) vector, where the x-
+    and y- components can be independently modified by {-1, 0, +1} on each timestep.
+    This gives a total of 9 actions.
+
+    **rewards:** -1 on all transitions unless the finish line is reached.
+
+    **termination:** Reaching the finish line.
+    """
 
     def __init__(self):
         track = np.asarray([
@@ -44,7 +63,9 @@ class Racetrack1(Racetrack):
 
 
 class Racetrack2(Racetrack):
-    """"""
+    """Same as `Racetrack1` but with a different track layout.
+    Reference: cite{3} (page 112, figure 5.5, right).
+    """
 
     def __init__(self):
         track = np.asarray([

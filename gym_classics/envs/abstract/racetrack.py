@@ -5,20 +5,9 @@ from gym_classics.utils import clip
 
 
 class Racetrack(Gridworld):
-    """Abstract class for creating racetrack environments.
-
-    See page 112 of Sutton & Barto (2018).
-    """
+    """Abstract class for creating racetrack environments."""
 
     def __init__(self, track):
-        """Instantiates a racetrack environment.
-
-        State is a tuple of position and velocity, both of which are themselves 2-tuples
-        representing their x- and y-components.
-
-        Args:
-            track
-        """
         blocks = self._get_coordinates(track, value=1)
         starting_line = self._get_coordinates(track, value=2)
         self._finish_line = self._get_coordinates(track, value=3)
