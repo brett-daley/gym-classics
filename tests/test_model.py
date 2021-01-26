@@ -68,7 +68,7 @@ class TestModel(unittest.TestCase):
         for s in env.states():
             for a in env.actions():
                 # We don't need to sample more than once if the env is deterministic
-                n = 1000 if not deterministic else 1
+                n = 1250 if not deterministic else 1
 
                 states1, rewards1, dones1, probs1 = self._approximate_model(env, s, a, n)
                 states2, rewards2, dones2, probs2 = env.model(s, a)
@@ -101,6 +101,7 @@ class TestModel(unittest.TestCase):
                     try:
                         self.assertTrue(np.allclose(probs1[nonzero], probs2[nonzero], atol=0.05))
                     except AssertionError:
+                        np.set_printoptions(threshold=np.inf)
                         print(probs1)
                         print(probs2)
                         print(probs1 - probs2)

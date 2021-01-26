@@ -9,10 +9,10 @@ class Racetrack(Gridworld):
 
     def __init__(self, track):
         blocks = self._get_coordinates(track, value=1)
-        starting_line = self._get_coordinates(track, value=2)
+        self._starting_line = self._get_coordinates(track, value=2)
         self._finish_line = self._get_coordinates(track, value=3)
 
-        self._max_velocity = 5  # Each velocity component must be in [0, 5]
+        self._max_velocity = 4  # Each velocity component must be in [0, 5)
 
         # There are 9 actions: both velocity components can be changed by {-1,0,+1}
         self._action_decoder = {
@@ -27,7 +27,7 @@ class Racetrack(Gridworld):
             8: (+1, +1),
         }
 
-        starts = {(pos, (0, 0)) for pos in starting_line}
+        starts = {(pos, (0, 0)) for pos in self._starting_line}
         super().__init__(dims=track.shape[::-1], starts=starts, blocks=blocks, n_actions=9)
 
     def _get_coordinates(self, track, value):
@@ -38,9 +38,11 @@ class Racetrack(Gridworld):
     def _sample_random_elements(self, state, action):
         # Only 90% chance that the velocity is successfully modified
         success = (self.np_random.rand() < 0.9)
-        return [success]
+        # Sample a random starting location in case we go out of bounds
+        start_index = self.np_random.choice(len(self._starts))
+        return [success, start_index]
 
-    def _next_state(self, state, action, success):
+    def _next_state(self, state, action, success, start_index):
         ((pos_x, pos_y), (vel_x, vel_y)) = state
 
         if success:
@@ -55,9 +57,15 @@ class Racetrack(Gridworld):
 
         position = (pos_x, pos_y)
         velocity = (vel_x, vel_y)
+
+        if self._out_of_bounds(position):
+            # If we go out of bounds, we teleport to a random starting location
+            position, velocity = self._starts[start_index]
+
         state = (position, velocity)
 
-        prob = 0.9 if success else 0.1
+        # We must normalize the transition probability by the number of starting locations
+        prob = (0.9 if success else 0.1) / len(self._starts)
         return state, prob
 
     def _out_of_bounds(self, position):
@@ -72,17 +80,12 @@ class Racetrack(Gridworld):
 
     def _done(self, state, action, next_state):
         next_pos, _ = next_state
-        return self._out_of_bounds(next_pos) or next_pos in self._finish_line
+        return next_pos in self._finish_line
 
     def _reward(self, state, action, next_state):
-        next_pos, _ = next_state
-        if self._out_of_bounds(next_pos):
-            return -1.0
-        elif next_pos in self._finish_line:
-            return 1.0
-        else:
-            return 0.0
+        return 0.0 if self._done(state, action, next_state) else -1.0
 
     def _generate_transitions(self, state, action):
         for success in [False, True]:
-            yield self._deterministic_step(state, action, success)
+            for start_index in range(len(self._starts)):
+                yield self._deterministic_step(state, action, success, start_index)
