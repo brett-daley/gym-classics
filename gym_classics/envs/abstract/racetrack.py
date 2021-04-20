@@ -90,16 +90,17 @@ class Racetrack(Gridworld):
             for start_index in range(len(self._starts)):
                 yield self._deterministic_step(state, action, success, start_index)
 
-    def _window_shape(self):
-        return np.array(self.track.T.shape)*10
-
-    def render(self, mode='human'):
+    def render(self, mode='human', scale=10):
+        """ Set up render mode.
+        @scale: How many times do you want to scale the visualization?
+        """
         if not hasattr(self, "pygame"):
             try:
                 import pygame
             except Exception as e:
                 print("Please install pygame to see the visualization. You can use this command line:\npip install pygame\n")
                 raise e
+            self.scale = scale
             self.pygame = pygame
             pygame.init()
             self.display = pygame.display.set_mode(self._window_shape())
@@ -120,3 +121,7 @@ class Racetrack(Gridworld):
         if hasattr(self, "pygame"):
             self.pygame.quit()
         super().close()
+
+    def _window_shape(self):
+        """ Get properly scaled window shape."""
+        return np.array(self.track.T.shape)*self.scale
