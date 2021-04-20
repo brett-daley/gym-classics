@@ -3,11 +3,14 @@ import numpy as np
 from gym_classics.envs.abstract.gridworld import Gridworld
 from gym_classics.utils import clip
 
+import pygame
+
 
 class Racetrack(Gridworld):
     """Abstract class for creating racetrack environments."""
 
     def __init__(self, track):
+        self.track = track
         blocks = self._get_coordinates(track, value=1)
         self._starting_line = self._get_coordinates(track, value=2)
         self._finish_line = self._get_coordinates(track, value=3)
@@ -89,3 +92,28 @@ class Racetrack(Gridworld):
         for success in [False, True]:
             for start_index in range(len(self._starts)):
                 yield self._deterministic_step(state, action, success, start_index)
+
+    def _window_shape(self):
+        return np.array(self.track.T.shape)*10
+
+    def render(self, mode='human'):
+        if not hasattr(self, "_vis"):
+            self._vis = []
+            pygame.init()
+            self.display = pygame.display.set_mode(self._window_shape())
+
+    def step(self, action):
+        if hasattr(self, "_vis"):
+            x,y = self._state[0]
+            vis = self.track.copy().T
+            vis[x,-1-y] = 9 # highlight the current pos
+            vis = 255*vis/vis.max()
+            surf = pygame.surfarray.make_surface(vis)
+            surf = pygame.transform.scale(surf, self._window_shape())
+            self.display.blit(surf, (0, 0))
+            pygame.display.update()
+        super().step(action)
+
+    def close(self):
+        pygame.quit()
+        super().close()
