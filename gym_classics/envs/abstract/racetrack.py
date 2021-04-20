@@ -3,9 +3,6 @@ import numpy as np
 from gym_classics.envs.abstract.gridworld import Gridworld
 from gym_classics.utils import clip
 
-import pygame
-
-
 class Racetrack(Gridworld):
     """Abstract class for creating racetrack environments."""
 
@@ -97,23 +94,29 @@ class Racetrack(Gridworld):
         return np.array(self.track.T.shape)*10
 
     def render(self, mode='human'):
-        if not hasattr(self, "_vis"):
-            self._vis = []
+        if not hasattr(self, "pygame"):
+            try:
+                import pygame
+            except Exception as e:
+                print("Please install pygame to see the visualization. You can use this command line:\npip install pygame\n")
+                raise e
+            self.pygame = pygame
             pygame.init()
             self.display = pygame.display.set_mode(self._window_shape())
 
     def step(self, action):
-        if hasattr(self, "_vis"):
+        if hasattr(self, "pygame"):
             x,y = self._state[0]
             vis = self.track.copy().T
             vis[x,-1-y] = 9 # highlight the current pos
             vis = 255*vis/vis.max()
-            surf = pygame.surfarray.make_surface(vis)
-            surf = pygame.transform.scale(surf, self._window_shape())
+            surf = self.pygame.surfarray.make_surface(vis)
+            surf = self.pygame.transform.scale(surf, self._window_shape())
             self.display.blit(surf, (0, 0))
-            pygame.display.update()
+            self.pygame.display.update()
         super().step(action)
 
     def close(self):
-        pygame.quit()
+        if hasattr(self, "pygame"):
+            self.pygame.quit()
         super().close()
