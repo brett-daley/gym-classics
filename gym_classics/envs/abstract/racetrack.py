@@ -3,6 +3,7 @@ import numpy as np
 from gym_classics.envs.abstract.gridworld import Gridworld
 from gym_classics.utils import clip
 
+
 class Racetrack(Gridworld):
     """Abstract class for creating racetrack environments."""
 
