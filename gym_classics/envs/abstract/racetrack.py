@@ -8,6 +8,7 @@ class Racetrack(Gridworld):
     """Abstract class for creating racetrack environments."""
 
     def __init__(self, track):
+        self.track = track
         blocks = self._get_coordinates(track, value=1)
         self._starting_line = self._get_coordinates(track, value=2)
         self._finish_line = self._get_coordinates(track, value=3)
@@ -89,3 +90,39 @@ class Racetrack(Gridworld):
         for success in [False, True]:
             for start_index in range(len(self._starts)):
                 yield self._deterministic_step(state, action, success, start_index)
+
+    def render(self, mode='human', scale=10):
+        """ Set up render mode.
+        @scale: How many times do you want to scale the visualization?
+        """
+        if not hasattr(self, "pygame"):
+            try:
+                import pygame
+            except Exception as e:
+                print("Please install pygame to see the visualization. You can use this command line:\npip install pygame\n")
+                raise e
+            self.scale = scale
+            self.pygame = pygame
+            pygame.init()
+            self.display = pygame.display.set_mode(self._window_shape())
+
+    def step(self, action):
+        if hasattr(self, "pygame"):
+            x,y = self._state[0]
+            vis = self.track.copy().T
+            vis[x,-1-y] = 9 # highlight the current pos
+            vis = 255*vis/vis.max()
+            surf = self.pygame.surfarray.make_surface(vis)
+            surf = self.pygame.transform.scale(surf, self._window_shape())
+            self.display.blit(surf, (0, 0))
+            self.pygame.display.update()
+        super().step(action)
+
+    def close(self):
+        if hasattr(self, "pygame"):
+            self.pygame.quit()
+        super().close()
+
+    def _window_shape(self):
+        """ Get properly scaled window shape."""
+        return np.array(self.track.T.shape)*self.scale
