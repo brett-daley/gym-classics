@@ -72,16 +72,7 @@ importing the `gym_classics` package in your Python script.
 The basic API is identical to that of OpenAI Gym.
 A minimal working example:
 
-```python
-import gym
-import gym_classics
-
-env = gym.make('ClassicGridworld-v0')
-env.reset()
-for _ in range(100):
-    env.step(env.action_space.sample())  # Take a random action
-env.close()
-```
+PYTHON{examples/random_policy.py}
 
 Gym Classics also implements methods for querying a model of the environment.
 The full interface of a Gym Classics environment therefore looks like this:
@@ -119,55 +110,7 @@ Note that states and actions are enumerated in an arbitrary order for each envir
 
 Let's test the classic Q-Learning algorithm cite{4} on `ClassicGridworld-v0`.
 
-```python
-import gym
-import gym_classics
-import numpy as np
-
-# Hyperparameters for Q-Learning
-discount = 0.9
-epsilon = 0.5
-learning_rate = 0.025
-
-# Instantiate the environment
-env = gym.make('ClassicGridworld-v0')
-state = env.reset()
-
-# Set seeds for reproducibility
-np.random.seed(0)
-env.seed(0)
-
-# Our Q-function is a numpy array
-Q = np.zeros([env.observation_space.n, env.action_space.n])
-
-# Loop for 500k timesteps
-for _ in range(500000):
-    # Select action from ε-greedy policy
-    if np.random.rand() < epsilon:
-        action = env.action_space.sample()
-    else:
-        action = np.argmax(Q[state])
-
-    # Step the environment
-    next_state, reward, done, _ = env.step(action)
-
-    # Q-Learning update:
-    # Q(s,a) <-- Q(s,a) + α * (r + γ max_a' Q(s',a') - Q(s,a))
-    target = reward - Q[state, action]
-    if not done:
-        target += discount * np.max(Q[next_state])
-    Q[state, action] += learning_rate * target
-
-    # Reset the environment if we're done
-    state = env.reset() if done else next_state
-```
-
-Now let's see what the value function looks like after training:
-
-```python
-V = np.max(Q, axis=1)
-print(V)
-```
+PYTHON{examples/q_learning.py}
 
 Output:
 
@@ -233,6 +176,7 @@ Note that these `numpy` arrays allow us to perform a value backup in a neat one-
 solution using advanced indexing!
 
 ```python
+import numpy as np
 V = np.zeros(env.observation_space.n)
 V[0] = np.sum(probabilities * (rewards + discount * (1.0 - dones) * V[next_states]))
 ```
@@ -243,21 +187,7 @@ Value Iteration and other dynamic programming methods are already implemented in
 Let's use Value Iteration to check that our Q-Learning implemention from
 [Example: Reinforcement Learning](#example-reinforcement-learning) is correct:
 
-```python
-# Compute the near-optimal values with Value Iteration
-from gym_classics.dynamic_programming import value_iteration
-V_star = value_iteration(env, discount=0.9, precision=1e-9)
-
-# Our Q-Learning values from earlier:
-V = [0.5618515,  0.75169693, 1.,         0.49147301, 0.26363411, -1.,
-     0.58655406, 0.51379727, 0.86959422, 0.43567445, 0.64966203]
-
-# Root Mean Square error
-print("RMS error: {.f}".for np.sqrt(np.square(V - V_star).mean()))
-
-# Maximum absolute difference
-print("Max abs diff: {.f}", np.abs(V - V_star).max())
-```
+PYTHON{examples/value_iteration.py}
 
 Output:
 

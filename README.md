@@ -77,9 +77,13 @@ import gym
 import gym_classics
 
 env = gym.make('ClassicGridworld-v0')
-env.reset()
-for _ in range(100):
-    env.step(env.action_space.sample())  # Take a random action
+state = env.reset()
+for t in range(1, 100 + 1):
+    action = env.action_space.sample()  # Select a random action
+    next_state, reward, done, info = env.step(action)
+    print("t={}, state={}, action={}, reward={}, next_state={}, done={}".format(
+        t, state, action, reward, next_state, done))
+    state = next_state if not done else env.reset()
 env.close()
 ```
 
@@ -160,11 +164,8 @@ for _ in range(500000):
 
     # Reset the environment if we're done
     state = env.reset() if done else next_state
-```
 
-Now let's see what the value function looks like after training:
-
-```python
+# Now let's see what the value function looks like after training:
 V = np.max(Q, axis=1)
 print(V)
 ```
@@ -233,6 +234,7 @@ Note that these `numpy` arrays allow us to perform a value backup in a neat one-
 solution using advanced indexing!
 
 ```python
+import numpy as np
 V = np.zeros(env.observation_space.n)
 V[0] = np.sum(probabilities * (rewards + discount * (1.0 - dones) * V[next_states]))
 ```
@@ -244,19 +246,30 @@ Let's use Value Iteration to check that our Q-Learning implemention from
 [Example: Reinforcement Learning](#example-reinforcement-learning) is correct:
 
 ```python
-# Compute the near-optimal values with Value Iteration
+import gym
 from gym_classics.dynamic_programming import value_iteration
+import numpy as np
+
+# Instantiate the environment
+env = gym.make('ClassicGridworld-v0')
+state = env.reset()
+
+# Set seeds for reproducibility
+np.random.seed(0)
+env.seed(0)
+
+# Compute the near-optimal values with Value Iteration
 V_star = value_iteration(env, discount=0.9, precision=1e-9)
 
 # Our Q-Learning values from earlier:
 V = [0.5618515,  0.75169693, 1.,         0.49147301, 0.26363411, -1.,
      0.58655406, 0.51379727, 0.86959422, 0.43567445, 0.64966203]
 
-# Root Mean Square error
-print("RMS error: {.f}".for np.sqrt(np.square(V - V_star).mean()))
+# Root Mean Square error:
+print("RMS error: {}".format(np.sqrt(np.square(V - V_star).mean())))
 
-# Maximum absolute difference
-print("Max abs diff: {.f}", np.abs(V - V_star).max())
+# Maximum absolute difference:
+print("Max abs diff: {}".format(np.abs(V - V_star).max()))
 ```
 
 Output:

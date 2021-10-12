@@ -47,6 +47,15 @@ def main():
             break
         template = pattern.sub(f"[[{i}]](#references)", template)
 
+    # Import python code
+    pattern = re.compile(r'PYTHON{(.*?)}')
+    for match in re.finditer(pattern, template):
+        import_statement = match.group(0)
+        code_file = match.group(1)
+        with open(code_file, 'r') as f:
+            code = f.read()
+        template = template.replace(import_statement, '```python\n' + code + '```')
+
     # Write to the readme
     with open('README.md', 'w') as f:        
         f.write(template)
