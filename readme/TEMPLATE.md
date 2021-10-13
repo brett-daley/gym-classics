@@ -82,7 +82,7 @@ class Env:
     # Standard Gym API:
     - step(self, action)
     - reset(self)
-    - render(self, mode='human')  # *currently not implemented*
+    - render(self, mode='human')  # *currently not implemented by all environments*
     - close(self)
     - seed(self, seed=None)
 

@@ -6,8 +6,10 @@ from gym_classics.utils import clip
 
 class Racetrack(Gridworld):
     """Abstract class for creating racetrack environments."""
+    metadata = {'render.modes': ['human']}
 
     def __init__(self, track):
+        self._track = track
         blocks = self._get_coordinates(track, value=1)
         self._starting_line = self._get_coordinates(track, value=2)
         self._finish_line = self._get_coordinates(track, value=3)
@@ -29,6 +31,13 @@ class Racetrack(Gridworld):
 
         starts = {(pos, (0, 0)) for pos in self._starting_line}
         super().__init__(dims=track.shape[::-1], starts=starts, blocks=blocks, n_actions=9)
+
+        # For rendering (pygame is imported dynamically after calling render)
+        self._pygame = None
+        window_scale = 20
+        self._window_shape = window_scale * np.array(track.T.shape)
+        self._where_starting_line = np.equal(track, 2).T
+        self._where_finish_line = np.equal(track, 3).T
 
     def _get_coordinates(self, track, value):
         Y, X = np.where(track == value)
@@ -89,3 +98,32 @@ class Racetrack(Gridworld):
         for success in [False, True]:
             for start_index in range(len(self._starts)):
                 yield self._deterministic_step(state, action, success, start_index)
+
+    def render(self, mode='human'):
+        assert mode == 'human'
+
+        if self._pygame is None:
+            try:
+                import pygame
+            except ImportError as e:
+                print("Please install pygame to see the visualization. You can use this command line:\npip install pygame\n")
+                raise e
+            self.pygame = pygame
+            pygame.init()
+            self.display = pygame.display.set_mode(self._window_shape)
+
+        x, y = self._state[0]
+        vis = self._track.copy().T
+        vis[self._where_starting_line] = 5  # Color the starting line
+        vis[self._where_finish_line] = 4  # Color the finish line
+        vis[x,-1-y] = 9 # highlight the current pos
+        vis = 255*vis/vis.max()
+        surf = self.pygame.surfarray.make_surface(vis)
+        surf = self.pygame.transform.scale(surf, self._window_shape)
+        self.display.blit(surf, (0, 0))
+        self.pygame.display.update()
+
+    def close(self):
+        if self._pygame is not None:
+            self._pygame.quit()
+        return super().close()
