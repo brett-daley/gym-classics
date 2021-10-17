@@ -1,5 +1,5 @@
 # Gym Classics
-![pypi](https://img.shields.io/badge/pypi-0.0.0-blue)
+![pypi](https://img.shields.io/badge/pypi-0.0.1-blue)
 [![license](https://img.shields.io/badge/license-GPL%20v3.0-blue)](./LICENSE)
 ![python](https://img.shields.io/badge/python-3.5%2B-green)
 
