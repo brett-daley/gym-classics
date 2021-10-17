@@ -9,7 +9,7 @@ setuptools.setup(
     author="Brett Daley",
     author_email="daley.br@northeastern.edu",
     description="Classic environments for reinforcement learning and dynamic"
-                "programming, implemented in OpenAI Gym.",
+                " programming, implemented in OpenAI Gym.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/brett-daley/gym-classics",
