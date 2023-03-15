@@ -41,15 +41,15 @@ register(
     entry_point='gym_classics.envs.jacks_car_rental:JacksCarRentalModified'
 )
 
-register(
-    id='Racetrack1-v0',
-    entry_point='gym_classics.envs.racetracks:Racetrack1'
-)
+# register(
+#     id='Racetrack1-v0',
+#     entry_point='gym_classics.envs.racetracks:Racetrack1'
+# )
 
-register(
-    id='Racetrack2-v0',
-    entry_point='gym_classics.envs.racetracks:Racetrack2'
-)
+# register(
+#     id='Racetrack2-v0',
+#     entry_point='gym_classics.envs.racetracks:Racetrack2'
+# )
 
 register(
     id='SparseGridworld-v0',

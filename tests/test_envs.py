@@ -102,12 +102,12 @@ class TestEnvs(unittest.TestCase):
         self._test_interface('JacksCarRentalModified-v0')
 
 
-    def test_racetrack1(self):
-        self._test_interface('Racetrack1-v0')
+    # def test_racetrack1(self):
+    #     self._test_interface('Racetrack1-v0')
 
 
-    def test_racetrack2(self):
-        self._test_interface('Racetrack2-v0')
+    # def test_racetrack2(self):
+    #     self._test_interface('Racetrack2-v0')
 
 
     def test_sparse_gridworld(self):

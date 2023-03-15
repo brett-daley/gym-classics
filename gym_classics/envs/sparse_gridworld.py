@@ -18,12 +18,22 @@ class SparseGridworld(NoisyGridworld):
     **termination:** Reaching the goal.
     """
 
+    layout = """
+|          |
+|          |
+|          |
+|          |
+| S    G   |
+|          |
+|          |
+|          |
+"""
+
     def __init__(self):
-        self._goal = (6, 3)
-        super().__init__(dims=(10, 8), starts={(1, 3)})
+        super().__init__(SparseGridworld.layout)
 
     def _reward(self, state, action, next_state):
         return 1.0 if self._done(state, action, next_state) else 0.0
 
     def _done(self, state, action, next_state):
-        return next_state == self._goal
+        return next_state in self._goals
