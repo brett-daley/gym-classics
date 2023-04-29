@@ -14,7 +14,7 @@ class TestEnvs(unittest.TestCase):
         env.reset()
 
         for _ in range(3):
-            state, reward, done, _ = env.step(1)
+            state, reward, done, _, _ = env.step(1)
 
         self.assertEqual(state, 4)
         self.assertEqual(reward, 1.0)
@@ -29,7 +29,7 @@ class TestEnvs(unittest.TestCase):
         env.reset()
 
         for _ in range(10):
-            state, reward, done, _ = env.step(1)
+            state, reward, done, _, _ = env.step(1)
 
         self.assertEqual(state, 18)
         self.assertEqual(reward, 1.0)
@@ -47,9 +47,9 @@ class TestEnvs(unittest.TestCase):
         env = gym.make('CliffWalk-v0')
         env.reset()
 
-        state, reward, done, _ = env.step(1)
+        state, reward, done, _, _ = env.step(1)
 
-        self.assertEqual(env._decode(state), (0, 0))
+        self.assertEqual(env.decode(state), (0, 0))
         self.assertEqual(reward, -100.0)
         self.assertTrue(done)
 
@@ -60,9 +60,9 @@ class TestEnvs(unittest.TestCase):
         env.step(0)
         for _ in range(11):
             env.step(1)
-        state, reward, done, _ = env.step(2)
+        state, reward, done, _, _ = env.step(2)
 
-        self.assertEqual(env._decode(state), (11, 1))
+        self.assertEqual(env.decode(state), (11, 1))
         self.assertEqual(reward, -1.0)
         self.assertTrue(done)
 
@@ -83,9 +83,9 @@ class TestEnvs(unittest.TestCase):
         for _ in range(5):
             env.step(1)
         for _ in range(3):
-            state, reward, done, _ = env.step(0)
+            state, reward, done, _, _ = env.step(0)
 
-        self.assertEqual(env._decode(state), (8, 4))
+        self.assertEqual(env.decode(state), (8, 4))
         self.assertEqual(reward, 1.0)
         self.assertTrue(done)
 
@@ -126,9 +126,9 @@ class TestEnvs(unittest.TestCase):
         for _ in range(4):
             env.step(2)
         for _ in range(2):
-            state, reward, done, _ = env.step(3)
+            state, reward, done, _, _ = env.step(3)
 
-        self.assertEqual(env._decode(state), (8, 2))
+        self.assertEqual(env.decode(state), (8, 2))
         self.assertEqual(reward, 0.0)
         self.assertTrue(done)
 
@@ -142,9 +142,9 @@ class TestEnvs(unittest.TestCase):
 
         for _ in range(6):
             env.step(5)
-        state, reward, done, _ = env.step(1)
+        state, reward, done, _, _ = env.step(1)
 
-        self.assertEqual(env._decode(state), (6, 1))
+        self.assertEqual(env.decode(state), (6, 1))
         self.assertEqual(reward, 0.0)
         self.assertTrue(done)
 
@@ -154,9 +154,9 @@ class TestEnvs(unittest.TestCase):
 
     def test_windy_gridworld_kings_no_op_action(self):
         env = gym.make('WindyGridworldKingsNoOp-v0')
-        init_state = env.reset()
+        init_state, _ = env.reset()
         for _ in range(10):
-            state, _, _, _ = env.step(8)
+            state, _, _, _, _ = env.step(8)
         self.assertEqual(state, init_state)
 
     def test_windy_gridworld_kings_no_op_optimal_path(self):
@@ -165,9 +165,9 @@ class TestEnvs(unittest.TestCase):
 
         for _ in range(6):
             env.step(5)
-        state, reward, done, _ = env.step(1)
+        state, reward, done, _, _ = env.step(1)
 
-        self.assertEqual(env._decode(state), (6, 1))
+        self.assertEqual(env.decode(state), (6, 1))
         self.assertEqual(reward, 0.0)
         self.assertTrue(done)
 
@@ -178,11 +178,10 @@ class TestEnvs(unittest.TestCase):
 
     def _test_interface(self, env_id):
         env = gym.make(env_id)
-        env.seed(0)
-        env.reset()
+        _, _ = env.reset(seed=0)
 
         for _ in range(1_000):
             action = env.action_space.sample()
-            _, _, done, _ = env.step(action)
+            _, _, done, _, _ = env.step(action)
             if done:
                 env.reset()

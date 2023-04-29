@@ -5,7 +5,7 @@ class Gridworld(BaseEnv):
     """Abstract class for creating gridworld-type environments."""
 
     def __init__(self, layout_string, n_actions=None):
-        self._dims, starts, self._goals, self._blocks = parse_gridworld(layout_string)
+        self.dims, starts, self._goals, self._blocks = parse_gridworld(layout_string)
 
         if n_actions is None:
             n_actions = 4
@@ -29,8 +29,8 @@ class Gridworld(BaseEnv):
     def _clamp(self, state):
         """Clamps the state within the grid dimensions."""
         x, y = state
-        x = max(0, min(x, self._dims[0] - 1))
-        y = max(0, min(y, self._dims[1] - 1))
+        x = max(0, min(x, self.dims[0] - 1))
+        y = max(0, min(y, self.dims[1] - 1))
         return (x, y)
 
     def _is_blocked(self, state):

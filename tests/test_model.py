@@ -59,11 +59,9 @@ class TestModel(unittest.TestCase):
 
 
     def _run_test(self, env_id, discount, deterministic=False):
-        np.random.seed(0)
-
         env = gym.make(env_id)
+        env.reset(seed=0)
         env._use_sparse_model = True
-        env.seed(0)
 
         for s in env.states():
             for a in env.actions():
@@ -119,10 +117,10 @@ class TestModel(unittest.TestCase):
 
         for _ in range(n):
             # Reset environment state each time
-            env._state = env._decode(state)
+            env._state = env.decode(state)
 
             # Sample an outcome from this state-action pair
-            ns, r, d, _ = env.step(action)
+            ns, r, d, _, _ = env.step(action)
 
             dones[ns] = float(d)
             rewards[ns] = r

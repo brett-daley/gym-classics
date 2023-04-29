@@ -67,19 +67,19 @@ class TestValueIteration(unittest.TestCase):
         V = value_iteration(env, discount)
 
         print(env_id + ':')
-        if isinstance(env, Racetrack):
+        if isinstance(env.unwrapped, Racetrack):
             # Since we can't simultaneously visualize position and velocity, print the
             # best value over all velocities in each position in the shape of the track
             print_racetrack(env, V)
-        elif isinstance(env, Gridworld):
+        elif isinstance(env.unwrapped, Gridworld):
             # Print the values in the shape of the gridworld
-            print_gridworld(env, V)
+            print_gridworld(env.unwrapped, V)
         elif isinstance(env, JacksCarRental):
             # Some extra bookkeeping allows us to treat the car rental as a gridworld
-            env._dims = (21, 21)
+            env.dims = (21, 21)
             print_gridworld(env, V, decimals=0)
         else:
             # Just print a list of the encoded/decoded states and their values
             for s in env.states():
-                print(s, ':', env._decode(s), ':', '{:.2f}'.format(V[s]))
+                print(s, ':', env.decode(s), ':', '{:.2f}'.format(V[s]))
         print(flush=True)

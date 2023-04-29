@@ -45,17 +45,16 @@ class JacksCarRental(BaseEnv):
         states = [(i, j) for i in range(21) for j in range(21)]
         super().__init__(starts={(10, 10)}, n_actions=11, reachable_states=states)
 
-    def seed(self, seed=None):
-        seeds = super().seed(seed)
+    def reset(self, seed=None):
+        state, info = super().reset(seed)
+        self._t = 0
+
         # Make sure each distribution has access to the np_random module
         for distr in [self._lot1_requests_distr, self._lot1_dropoffs_distr,
                       self._lot2_requests_distr, self._lot2_dropoffs_distr]:
             distr.np_random = self.np_random
-        return seeds
 
-    def reset(self):
-        self._t = 0
-        return super().reset()
+        return state, info
 
     def step(self, action):
         self._t += 1
@@ -71,7 +70,7 @@ class JacksCarRental(BaseEnv):
 
         next_state, reward, done, _ = self._deterministic_step(state, action, next_state)
         self._state = next_state
-        return self._encode(next_state), reward, done, {}
+        return self.encode(next_state), reward, done, False, {}
 
     def _sample_random_elements(self):
         lot1_requests = self._lot1_requests_distr.sample()
@@ -112,7 +111,7 @@ class JacksCarRental(BaseEnv):
     def _generate_transitions(self, state, action):
         action = decode_action(action)
         for next_state in self.states():
-            next_state = self._decode(next_state)
+            next_state = self.decode(next_state)
             yield self._deterministic_step(state, action, next_state)
 
 

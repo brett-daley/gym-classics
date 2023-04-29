@@ -23,14 +23,14 @@ class TestPolicyIteration(unittest.TestCase):
 
     def _run_test(self, env_id, discount):
         env = gym.make(env_id)
-        assert isinstance(env, Gridworld) or isinstance(env, JacksCarRental)
+        assert isinstance(env.unwrapped, (Gridworld, JacksCarRental))
         policy = policy_iteration(env, discount)
 
         print(env_id + ':')
         kwargs = dict(decimals=0, separator=' ', signed=False)
 
-        if isinstance(env, JacksCarRental):
-            env._dims = (21, 21)
+        if isinstance(env.unwrapped, JacksCarRental):
+            env.dims = (21, 21)
             policy -= 5
             kwargs['transpose'] = True
 

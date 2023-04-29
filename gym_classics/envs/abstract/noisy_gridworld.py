@@ -20,7 +20,7 @@ class NoisyGridworld(Gridworld):
         return next_state, 0.1
 
     def _noisy_action(self, action):
-        p = self.np_random.rand()
+        p = self.np_random.random()
         # 10% chance: rotate the action clockwise
         if 0.8 <= p < 0.9:
             action += 1
