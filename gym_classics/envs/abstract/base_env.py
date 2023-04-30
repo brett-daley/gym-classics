@@ -13,7 +13,7 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
         self.action_space = Discrete(n_actions)
         self.np_random = None  # Initialized by calling reset()
 
-        self._state = None
+        self.state = None
         self._transition_cache = {}
 
         if reachable_states is None:
@@ -36,8 +36,6 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
             i += 1
         self.observation_space = Discrete(i)
 
-        self._use_sparse_model = False  # Set True for debug only
-
     def _search(self, state, visited):
         """A recursive depth-first search that adds all reachable states to the visited set."""
         visited.add(state)
@@ -57,15 +55,15 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
             self.np_random = np.random.default_rng(seed)
 
         i = self.np_random.choice(len(self._starts))
-        self._state = self._starts[i]
-        return self.encode(self._state), {}
+        self.state = self._starts[i]
+        return self.encode(self.state), {}
 
     def step(self, action):
         assert self.action_space.contains(action)
-        state = self._state
+        state = self.state
         elements = self._sample_random_elements(state, action)
         next_state, reward, done, _ = self._deterministic_step(state, action, *elements)
-        self._state = next_state
+        self.state = next_state
         return self.encode(next_state), reward, done, False, {}
 
     def _sample_random_elements(self, state, action):
@@ -148,12 +146,8 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
         assert (probabilities >= 0.0).all(), "transition probabilities must be nonnegative"
         assert abs(probabilities.sum() - 1.0) <= 0.01, "transition probabilities must sum to 1"
 
-        if not self._use_sparse_model:
-            i = np.nonzero(probabilities)
-            transition = (next_states[i], rewards[i], dones[i], probabilities[i])
-        else:
-            transition = (next_states, rewards, dones, probabilities)
-
+        i = np.nonzero(probabilities)
+        transition = (next_states[i], rewards[i], dones[i], probabilities[i])
         self._transition_cache[sa_pair] = transition
         return transition
 

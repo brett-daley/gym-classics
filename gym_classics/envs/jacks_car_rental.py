@@ -37,29 +37,20 @@ class JacksCarRental(BaseEnv):
         self.P1, self.R1 = open_to_close(self._lot1_requests_distr, self._lot1_dropoffs_distr)
         self.P2, self.R2 = open_to_close(self._lot2_requests_distr, self._lot2_dropoffs_distr)
 
-        # Episode terminates after 100 days (timesteps)
-        self._t = 0
-        self._time_limit = 100
-
         # Bypass the search for reachable states because we know the whole grid is valid
         states = [(i, j) for i in range(21) for j in range(21)]
         super().__init__(starts={(10, 10)}, n_actions=11, reachable_states=states)
 
     def reset(self, seed=None):
-        state, info = super().reset(seed)
-        self._t = 0
-
         # Make sure each distribution has access to the np_random module
         for distr in [self._lot1_requests_distr, self._lot1_dropoffs_distr,
                       self._lot2_requests_distr, self._lot2_dropoffs_distr]:
             distr.np_random = self.np_random
-
-        return state, info
+        return super().reset(seed)
 
     def step(self, action):
-        self._t += 1
         assert self.action_space.contains(action)
-        state = self._state
+        state = self.state
         action = decode_action(action)
 
         next_state = move_cars(state, action)
@@ -69,7 +60,7 @@ class JacksCarRental(BaseEnv):
             next_state[i] = handle_requests_and_dropoffs(next_state[i], requests[i], dropoffs[i])
 
         next_state, reward, done, _ = self._deterministic_step(state, action, next_state)
-        self._state = next_state
+        self.state = next_state
         return self.encode(next_state), reward, done, False, {}
 
     def _sample_random_elements(self):
@@ -106,7 +97,7 @@ class JacksCarRental(BaseEnv):
         return -2.0 * abs(action) + self.R1[n1] + self.R2[n2]
 
     def _done(self):
-        return self._t == self._time_limit
+        return False  # Environment has no terminal state
 
     def _generate_transitions(self, state, action):
         action = decode_action(action)

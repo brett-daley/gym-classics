@@ -61,77 +61,82 @@ class TestModel(unittest.TestCase):
     def _run_test(self, env_id, discount, deterministic=False):
         env = gym.make(env_id)
         env.reset(seed=0)
-        env._use_sparse_model = True
+
+        def make_sparse(indices, values):
+            S = env.observation_space.n
+            sparse_array = np.zeros(S, dtype=values.dtype)
+            sparse_array[indices] = values
+            return sparse_array
 
         for s in env.states():
             for a in env.actions():
                 # We don't need to sample more than once if the env is deterministic
                 n = 1250 if not deterministic else 1
+                states1, rewards1, dones1, probs1, were_sampled = self._approximate_model(env, s, a, n)
 
-                states1, rewards1, dones1, probs1 = self._approximate_model(env, s, a, n)
+                # Now get the real model outputs and pad them with zeros if needed (so all vectors have the same length)
                 states2, rewards2, dones2, probs2 = env.model(s, a)
+                indices = states2.copy()
+                states2 = make_sparse(indices, states2)
+                rewards2 = make_sparse(indices, rewards2)
+                dones2 = make_sparse(indices, dones2)
+                probs2 = make_sparse(indices, probs2)
 
-                # States should be the same
-                self.assertTrue((states1 == states2).all())
-
-                # We artificially set s' = s when the episode is done to ensure that
-                # the next state always exists in the MDP. However, this makes it
-                # impossible to uniquely infer the reward/done from a state-action pair
-                # when the environment is stochastic. We therefore only check the
-                # deterministic case.
                 if deterministic:
-                    # Rewards/dones should be the same, but there may be extremely rare
-                    # transitions that will not be sampled (e.g. Jack's Car Rental).
-                    # Instead, just make sure that all of the sampled transitions are correct.
-                    # We use nan as an indicator for transitions that were not sampled.
-                    not_nan = np.logical_not(np.isnan(rewards1))
-                    self.assertTrue((rewards1[not_nan] == rewards2[not_nan]).all())
-                    self.assertTrue((dones1[not_nan] == dones2[not_nan]).all())
-
-                if not deterministic:
-                    # Make sure that any impossible transition according to the model
-                    # is never sampled by the step() method
-                    zero = (probs2 == 0.0)
-                    self.assertTrue((probs1[zero] == 0.0).all())
-
-                    # Make sure nonzero probabilities are close (allowing for variance)
-                    nonzero = np.logical_not(zero)
-                    try:
-                        self.assertTrue(np.allclose(probs1[nonzero], probs2[nonzero], atol=0.05))
-                    except AssertionError:
-                        np.set_printoptions(threshold=np.inf)
-                        print(probs1)
-                        print(probs2)
-                        print(probs1 - probs2)
-                        raise
-                else:
-                    # The environment is deterministic, so these should be identical
+                    # For deterministic environments, the models should match exactly.
+                    self.assertTrue((states1 == states2).all())
+                    self.assertTrue((rewards1 == rewards2).all())
+                    self.assertTrue((dones1 == dones2).all())
                     self.assertTrue((probs1 == probs2).all())
+                    continue
+
+                # We might not sample all possible states in a stochastic environment, but the
+                # samples we do obtain should at least be a subset of them.
+                self.assertTrue(set(states1).issubset(set(states2)))
+
+                # Rewards/dones should be the same, but there may be extremely rare
+                # transitions that will not be sampled (e.g. Jack's Car Rental).
+                # Instead, just make sure that all of the sampled transitions are correct.
+                self.assertTrue((rewards1[were_sampled] == rewards2[were_sampled]).all())
+                self.assertTrue((dones1[were_sampled] == dones2[were_sampled]).all())
+
+                # Make sure that any impossible transition according to the model
+                # is never sampled by the step() method.
+                zero = (probs2 == 0.0)
+                self.assertTrue((probs1[zero] == 0.0).all())
+
+                # Make sure nonzero probabilities are somewhat close (allowing for variance).
+                try:
+                    self.assertTrue(np.allclose(probs1[were_sampled], probs2[were_sampled], atol=0.05))
+                except AssertionError:
+                    np.set_printoptions(threshold=np.inf)
+                    print(probs1)
+                    print(probs2)
+                    print(probs1 - probs2)
+                    raise
 
     def _approximate_model(self, env, state, action, n):
         S = env.observation_space.n
-        next_states = np.arange(S)
-        dones = np.nan * np.ones(S)
-        rewards = np.nan * np.ones(S)
+        next_states = np.zeros(S, dtype=np.int64)
+        dones = np.zeros(S)
+        rewards = np.zeros(S)
         counts = np.zeros(S)
 
         for _ in range(n):
             # Reset environment state each time
-            env._state = env.decode(state)
+            env.unwrapped.state = env.decode(state)
 
             # Sample an outcome from this state-action pair
             ns, r, d, _, _ = env.step(action)
 
+            next_states[ns] = ns
             dones[ns] = float(d)
             rewards[ns] = r
-            counts[ns] += 1.0
-
-            if hasattr(env, '_t'):
-                # Reset the timer if the environment has one
-                env._t = 0
+            counts[ns] += 1
 
         # Convert the counts to probabilities
         probabilities = counts / counts.sum()
         np.nan_to_num(probabilities, copy=False)
 
-        return (next_states, rewards, dones, probabilities)
+        were_sampled = (counts > 0)
+        return (next_states, rewards, dones, probabilities, were_sampled)

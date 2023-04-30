@@ -33,12 +33,14 @@ register(
 
 register(
     id='JacksCarRental-v0',
-    entry_point='gym_classics.envs.jacks_car_rental:JacksCarRental'
+    entry_point='gym_classics.envs.jacks_car_rental:JacksCarRental',
+    max_episode_steps=100
 )
 
 register(
     id='JacksCarRentalModified-v0',
-    entry_point='gym_classics.envs.jacks_car_rental:JacksCarRentalModified'
+    entry_point='gym_classics.envs.jacks_car_rental:JacksCarRentalModified',
+    max_episode_steps=100
 )
 
 # register(
