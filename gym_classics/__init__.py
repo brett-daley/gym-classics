@@ -72,7 +72,8 @@ _backend = None
 def register(backend='gym'):
     global _backend
     if _backend is not None:
-        warnings.warn(f"gym-classics environments were already registered for {_backend}; additional calls to `register()` are ignored.")
+        warnings.warn("gym-classics environments were already registered for {}; "
+                      "additional calls to `register()` are ignored.".format(_backend))
         return
 
     assert backend in {'gym', 'gymnasium'}

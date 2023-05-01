@@ -54,7 +54,7 @@ class BaseEnv(Env, metaclass=ABCMeta):
                     if not done and next_state not in visited:
                         self._search(next_state, visited)
 
-    def reset(self, seed=None):
+    def reset(self, seed=None, options=None):
         if self.np_random is None and seed is None:
             seed = np.random.default_rng().integers(2**32)
 

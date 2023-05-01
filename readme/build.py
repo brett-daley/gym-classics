@@ -10,17 +10,21 @@ import gym
 # Make sure we import the source code and not the installed version
 sys.path.insert(0, '.')
 import gym_classics
+gym_classics.register('gym')
 
 
 def main():
-    env_specs = tuple(s for s in gym.envs.registry.all() if 'gym_classics' in s.entry_point)
+    env_specs = []
+    for env_id, spec in gym.envs.registry.items():
+        if 'gym_classics' in spec.entry_point:
+            env_specs.append(spec)
     assert env_specs
 
     # Pull the docstring from each environment class to build the glossary    
     glossary = ''
-    for i, s in enumerate(env_specs):
+    for i, spec in enumerate(env_specs):
         # Get the environment class
-        path, name = s.entry_point.split(':')
+        path, name = spec.entry_point.split(':')
         module = import_module(path)
         env_cls = getattr(module, name)
 
@@ -29,7 +33,7 @@ def main():
         description = description.rstrip()
         description = description.replace('\n\n', '<br><br>')
         description = description.replace('\n', ' ')
-        glossary += f"| {i+1} | `{s.id}` | {description} |\n"
+        glossary += f"| {i+1} | `{spec.id}` | {description} |\n"
 
     # Load the template
     template_path = os.path.join('readme', 'TEMPLATE.md')

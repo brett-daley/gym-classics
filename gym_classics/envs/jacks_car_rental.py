@@ -41,7 +41,7 @@ class JacksCarRental(BaseEnv):
         states = [(i, j) for i in range(21) for j in range(21)]
         super().__init__(starts={(10, 10)}, n_actions=11, reachable_states=states)
 
-    def reset(self, seed=None):
+    def reset(self, seed=None, options=None):
         # Make sure each distribution has access to the np_random module
         for distr in [self._lot1_requests_distr, self._lot1_dropoffs_distr,
                       self._lot2_requests_distr, self._lot2_dropoffs_distr]:

@@ -5,11 +5,11 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name="gym-classics",
-    version="0.0.2",
+    version="1.0.0",
     author="Brett Daley",
     author_email="brett.daley@ualberta.ca",
     description="Classic environments for reinforcement learning and dynamic"
-                " programming, implemented in OpenAI Gym.",
+                " programming, implemented in OpenAI Gym and Gymnasium.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/brett-daley/gym-classics",
