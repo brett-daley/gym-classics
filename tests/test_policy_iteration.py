@@ -2,6 +2,8 @@ import unittest
 
 import gym
 
+import gym_classics
+gym_classics.register('gym')
 from gym_classics.dynamic_programming import policy_iteration
 from gym_classics.envs.abstract.gridworld import Gridworld
 from gym_classics.envs.jacks_car_rental import JacksCarRental

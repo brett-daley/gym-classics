@@ -3,6 +3,8 @@ import unittest
 import gym
 import numpy as np
 
+import gym_classics
+gym_classics.register('gym')
 from gym_classics.dynamic_programming import value_iteration
 from gym_classics.envs.abstract.gridworld import Gridworld
 from gym_classics.envs.abstract.racetrack import Racetrack

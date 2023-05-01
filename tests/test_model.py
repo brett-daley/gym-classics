@@ -4,6 +4,7 @@ import gym
 import numpy as np
 
 import gym_classics
+gym_classics.register('gym')
 
 
 class TestModel(unittest.TestCase):

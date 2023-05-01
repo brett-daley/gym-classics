@@ -1,79 +1,89 @@
-from gym.envs import register
+import warnings
 
 
-register(
-    id='5Walk-v0',
-    entry_point='gym_classics.envs.linear_walks:Walk5'
+_registry = (
+    {
+        'id': '5Walk-v0',
+        'entry_point': 'gym_classics.envs.linear_walks:Walk5'
+    },
+    {
+        'id': '19Walk-v0',
+        'entry_point': 'gym_classics.envs.linear_walks:Walk19'
+    },
+    {
+        'id': 'ClassicGridworld-v0',
+        'entry_point': 'gym_classics.envs.classic_gridworld:ClassicGridworld'
+    },
+    {
+        'id': 'CliffWalk-v0',
+        'entry_point': 'gym_classics.envs.cliff_walk:CliffWalk'
+    },
+    {
+        'id': 'DynaMaze-v0',
+        'entry_point': 'gym_classics.envs.dyna_maze:DynaMaze',
+    },
+    {
+        'id': 'FourRooms-v0',
+        'entry_point': 'gym_classics.envs.four_rooms:FourRooms',
+    },
+    {
+        'id': 'JacksCarRental-v0',
+        'entry_point': 'gym_classics.envs.jacks_car_rental:JacksCarRental',
+        'max_episode_steps': 100
+    },
+    {
+        'id': 'JacksCarRentalModified-v0',
+        'entry_point': 'gym_classics.envs.jacks_car_rental:JacksCarRentalModified',
+        'max_episode_steps': 100,
+    },
+    # {
+    #     'id': 'Racetrack1-v0',
+    #     'entry_point': 'gym_classics.envs.racetracks:Racetrack1',
+    # },
+    # {
+    #     'id': 'Racetrack2-v0',
+    #     'entry_point': 'gym_classics.envs.racetracks:Racetrack2',
+    # },
+    {
+        'id': 'SparseGridworld-v0',
+        'entry_point': 'gym_classics.envs.sparse_gridworld:SparseGridworld',
+    },
+    {
+        'id': 'WindyGridworld-v0',
+        'entry_point': 'gym_classics.envs.windy_gridworld:WindyGridworld',
+    },
+    {
+        'id': 'WindyGridworldKings-v0',
+        'entry_point': 'gym_classics.envs.windy_gridworld:WindyGridworldKings',
+    },
+    {
+        'id': 'WindyGridworldKingsNoOp-v0',
+        'entry_point': 'gym_classics.envs.windy_gridworld:WindyGridworldKingsNoOp',
+    },
+    {
+        'id': 'WindyGridworldKingsStochastic-v0',
+        'entry_point': 'gym_classics.envs.windy_gridworld:WindyGridworldKingsStochastic',
+    }
 )
 
-register(
-    id='19Walk-v0',
-    entry_point='gym_classics.envs.linear_walks:Walk19'
-)
 
-register(
-    id='ClassicGridworld-v0',
-    entry_point='gym_classics.envs.classic_gridworld:ClassicGridworld'
-)
+_backend = None
 
-register(
-    id='CliffWalk-v0',
-    entry_point='gym_classics.envs.cliff_walk:CliffWalk'
-)
+def register(backend='gym'):
+    global _backend
+    if _backend is not None:
+        warnings.warn(f"gym-classics environments were already registered for {_backend}; additional calls to `register()` are ignored.")
+        return
 
-register(
-    id='DynaMaze-v0',
-    entry_point='gym_classics.envs.dyna_maze:DynaMaze'
-)
+    assert backend in {'gym', 'gymnasium'}
+    _backend = backend
 
-register(
-    id='FourRooms-v0',
-    entry_point='gym_classics.envs.four_rooms:FourRooms'
-)
+    if backend == 'gym':
+        import gym
+        register = gym.envs.register
+    elif backend == 'gymnasium':
+        import gymnasium
+        register = gymnasium.register
 
-register(
-    id='JacksCarRental-v0',
-    entry_point='gym_classics.envs.jacks_car_rental:JacksCarRental',
-    max_episode_steps=100
-)
-
-register(
-    id='JacksCarRentalModified-v0',
-    entry_point='gym_classics.envs.jacks_car_rental:JacksCarRentalModified',
-    max_episode_steps=100
-)
-
-# register(
-#     id='Racetrack1-v0',
-#     entry_point='gym_classics.envs.racetracks:Racetrack1'
-# )
-
-# register(
-#     id='Racetrack2-v0',
-#     entry_point='gym_classics.envs.racetracks:Racetrack2'
-# )
-
-register(
-    id='SparseGridworld-v0',
-    entry_point='gym_classics.envs.sparse_gridworld:SparseGridworld'
-)
-
-register(
-    id='WindyGridworld-v0',
-    entry_point='gym_classics.envs.windy_gridworld:WindyGridworld'
-)
-
-register(
-    id='WindyGridworldKings-v0',
-    entry_point='gym_classics.envs.windy_gridworld:WindyGridworldKings'
-)
-
-register(
-    id='WindyGridworldKingsNoOp-v0',
-    entry_point='gym_classics.envs.windy_gridworld:WindyGridworldKingsNoOp'
-)
-
-register(
-    id='WindyGridworldKingsStochastic-v0',
-    entry_point='gym_classics.envs.windy_gridworld:WindyGridworldKingsStochastic'
-)
+    for kwargs in _registry:
+        register(**kwargs)

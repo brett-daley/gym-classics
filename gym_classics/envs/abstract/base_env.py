@@ -1,11 +1,19 @@
 from abc import ABCMeta, abstractmethod
 
-import gym
-from gym.spaces import Discrete
 import numpy as np
 
+import gym_classics
 
-class BaseEnv(gym.Env, metaclass=ABCMeta):
+
+if gym_classics._backend == 'gym':
+     from gym import Env
+     from gym.spaces import Discrete
+elif gym_classics._backend == 'gymnasium':
+    from gymnasium import Env
+    from gymnasium.spaces import Discrete
+
+
+class BaseEnv(Env, metaclass=ABCMeta):
     """Abstract base class for shared functionality between all environments."""
 
     def __init__(self, starts, n_actions, reachable_states=None):

@@ -3,6 +3,7 @@ import unittest
 import gym
 
 import gym_classics
+gym_classics.register('gym')
 
 
 class TestEnvs(unittest.TestCase):
