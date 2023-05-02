@@ -1,5 +1,5 @@
 # Gym Classics
-![pypi](https://img.shields.io/badge/pypi-0.0.2-blue)
+![pypi](https://img.shields.io/badge/pypi-1.0.0-blue)
 [![license](https://img.shields.io/badge/license-GPL%20v3.0-blue)](./LICENSE)
 ![python](https://img.shields.io/badge/python-3.5%2B-green)
 
@@ -24,30 +24,15 @@ test and debug new learning methods.
 
 1. [Environments Glossary](#environments-glossary)
 
-1. [References](#references)
-
-### Citing
-
-You can cite this repository in published work using the following bibtex:
-
-```
-@misc{daley2021gym,
-  author={Daley, Brett},
-  title={Gym Classics},
-  year={2021},
-  publisher={GitHub},
-  journal={GitHub repository},
-  howpublished={\url{https://github.com/brett-daley/gym-classics}},
-}
-```
+1. [Citing and References](#citing-and-references)
 
 ## Installation
 
 Prerequisites:
-- python 3.5+
-- gym
-- numpy
-- scipy (`JacksCarRental-v0` and `JacksCarRentalModified-v0` only)
+- Python 3.5+
+- `gym==0.26.2` or `gymnasium`
+- `numpy`
+- `scipy` (for `JacksCarRental` and `JacksCarRentalModified` only)
 
 ### Option 1: `pip`
 
@@ -67,37 +52,44 @@ python setup.py install
 
 ## API Overview
 
-Once installed, the environments are automatically registered for `gym.make` by
-importing the `gym_classics` package in your Python script.
-The basic API is identical to that of OpenAI Gym.
+The basic API is identical to that of [OpenAI Gym](https://www.gymlibrary.dev/) (as of `0.26.2`) and [Gymnasium](https://gymnasium.farama.org/).
+The environments must be explictly registered for `gym.make` by
+importing the `gym_classics` package in your Python script and then calling `gym_classics.register('gym')` or `gym_classics.register('gymnasium')`, depending on which library you want to use as the backend.
+Note that registration cannot be changed after calling `register`, and mixing `gym` and `gymnasium` environments in a single script is not possible.
+
 A minimal working example:
 
 ```python
-import gym
+import gym                    # or `import gymnasium as gym`
 import gym_classics
+gym_classics.register('gym')  # or `gym_classics.register('gymnasium')`
 
 env = gym.make('ClassicGridworld-v0')
-state = env.reset()
+state, _ = env.reset(seed=0)
+
 for t in range(1, 100 + 1):
     action = env.action_space.sample()  # Select a random action
-    next_state, reward, done, info = env.step(action)
+    next_state, reward, terminated, truncated, _ = env.step(action)
+    done = terminated or truncated
     print("t={}, state={}, action={}, reward={}, next_state={}, done={}".format(
         t, state, action, reward, next_state, done))
-    state = next_state if not done else env.reset()
-env.close()
+    if done:
+        next_state, _ = env.reset()
+    state = next_state
+
+env.close()  # Optional, not currently implemented by any environments
 ```
 
-Gym Classics also implements methods for querying a model of the environment.
+Gym Classics also implements methods for querying the model of the environment.
 The full interface of a Gym Classics environment therefore looks like this:
 
 ```yaml
 class Env:
     # Standard Gym API:
     - step(self, action)
-    - reset(self)
-    - render(self, mode='human')  # *currently not implemented by all environments*
+    - reset(self, seed=None, options=None)
+    - render(self)  # *currently not implemented by all environments*
     - close(self)
-    - seed(self, seed=None)
 
     # Extended Gym Classics API:
     - states(self)                # returns a generator over all feasible states
@@ -113,9 +105,9 @@ The size of these spaces can be queried as usual:
 `env.observation_space.n` and `env.action_space.n`.
 This means that states and actions are represented as unique integers, which is useful
 for advanced `numpy` indexing.
-Note that states and actions are enumerated in an arbitrary order for each environment.
+Note that states and actions are enumerated in an arbitrary but consistent order for each environment.
 
-> **Tip:** Gym Classics environments also implement private methods called `_encode` and `_decode` which convert states between their integral and human-interpretable forms.
+> **Tip:** Gym Classics environments also implement methods called `encode` and `decode` which convert states between their integer and human-interpretable forms.
 > These should never be used by the agent, but can be useful for displaying results or debugging.
 > See the abstract [BaseEnv](gym_classics/envs/abstract/base_env.py) class for implementation details.
 
@@ -126,6 +118,7 @@ Let's test the classic Q-Learning algorithm [[4]](#references) on `ClassicGridwo
 ```python
 import gym
 import gym_classics
+gym_classics.register('gym')
 import numpy as np
 
 # Hyperparameters for Q-Learning
@@ -135,11 +128,7 @@ learning_rate = 0.025
 
 # Instantiate the environment
 env = gym.make('ClassicGridworld-v0')
-state = env.reset()
-
-# Set seeds for reproducibility
-np.random.seed(0)
-env.seed(0)
+state, _ = env.reset(seed=0)
 
 # Our Q-function is a numpy array
 Q = np.zeros([env.observation_space.n, env.action_space.n])
@@ -147,23 +136,26 @@ Q = np.zeros([env.observation_space.n, env.action_space.n])
 # Loop for 500k timesteps
 for _ in range(500000):
     # Select action from ε-greedy policy
-    if np.random.rand() < epsilon:
+    if env.np_random.random() < epsilon:
         action = env.action_space.sample()
     else:
         action = np.argmax(Q[state])
 
     # Step the environment
-    next_state, reward, done, _ = env.step(action)
+    next_state, reward, terminated, truncated, _ = env.step(action)
+    done = terminated or truncated
 
     # Q-Learning update:
     # Q(s,a) <-- Q(s,a) + α * (r + γ max_a' Q(s',a') - Q(s,a))
-    target = reward - Q[state, action]
+    td_error = reward - Q[state, action]
     if not done:
-        target += discount * np.max(Q[next_state])
-    Q[state, action] += learning_rate * target
+        td_error += discount * np.max(Q[next_state])
+    Q[state, action] += learning_rate * td_error
 
     # Reset the environment if we're done
-    state = env.reset() if done else next_state
+    if done:
+        next_state, _ = env.reset()
+    state = next_state
 
 # Now let's see what the value function looks like after training:
 V = np.max(Q, axis=1)
@@ -173,8 +165,8 @@ print(V)
 Output:
 
 ```
-[ 0.5618515   0.75169693  1.          0.49147301  0.26363411 -1.
-  0.58655406  0.51379727  0.86959422  0.43567445  0.64966203]
+[ 0.56303004  0.72570493  0.56160538  0.48701053 -1.          0.44497334
+  0.2242687   0.63966295  0.84551377  0.42840196  1.        ]
 ```
 
 These values seem reasonable, but in the next section, we will certify their correctness
@@ -247,36 +239,39 @@ Let's use Value Iteration to check that our Q-Learning implemention from
 
 ```python
 import gym
+import gym_classics
+gym_classics.register('gym')
 from gym_classics.dynamic_programming import value_iteration
 import numpy as np
 
 # Instantiate the environment
 env = gym.make('ClassicGridworld-v0')
-state = env.reset()
-
-# Set seeds for reproducibility
-np.random.seed(0)
-env.seed(0)
 
 # Compute the near-optimal values with Value Iteration
 V_star = value_iteration(env, discount=0.9, precision=1e-9)
+print(V_star, end='\n\n')
 
 # Our Q-Learning values from earlier:
-V = [0.5618515,  0.75169693, 1.,         0.49147301, 0.26363411, -1.,
-     0.58655406, 0.51379727, 0.86959422, 0.43567445, 0.64966203]
+V = [0.56303004, 0.72570493, 0.56160538, 0.48701053, -1., 0.44497334,
+     0.2242687,  0.63966295, 0.84551377, 0.42840196, 1.]
 
 # Root Mean Square error:
-print("RMS error: {}".format(np.sqrt(np.square(V - V_star).mean())))
+rms_error = np.sqrt(np.mean(np.square(V - V_star)))
+print("RMS error:", rms_error)
 
 # Maximum absolute difference:
-print("Max abs diff: {}".format(np.abs(V - V_star).max()))
+max_abs_diff = np.max(np.abs(V - V_star))
+print("Maximum absolute difference:", max_abs_diff)
 ```
 
 Output:
 
 ```
-RMS error: 0.014976847878141084
-Max abs diff: 0.03832613967716292
+[ 0.56631445  0.74438015  0.57185903  0.49068396 -1.          0.47547113
+  0.27729584  0.64496924  0.84776628  0.43084446  1.        ]
+
+RMS error: 0.01967779454940685
+Maximum absolute difference: 0.053027139347779195
 ```
 
 Both error metrics are very close to zero;
@@ -306,7 +301,22 @@ is working!
 
 ---
 
-## References
+## Citing and References
+
+You can cite this repository in published work using the following bibtex:
+
+```
+@misc{daley2021gym,
+  author={Daley, Brett},
+  title={Gym Classics},
+  year={2021},
+  publisher={GitHub},
+  journal={GitHub repository},
+  howpublished={\url{https://github.com/brett-daley/gym-classics}},
+}
+```
+
+### References
 
 1. [Russell & Norvig. Artificial Intelligence: A Modern Approach. 2009, 3rd Ed.](https://cs.calvin.edu/courses/cs/344/kvlinden/resources/AIMA-3rd-edition.pdf)
 

@@ -1,19 +1,27 @@
 from abc import ABCMeta, abstractmethod
 
-import gym
-from gym.spaces import Discrete
-from gym.utils import seeding
 import numpy as np
 
+import gym_classics
 
-class BaseEnv(gym.Env, metaclass=ABCMeta):
+
+if gym_classics._backend == 'gym':
+     from gym import Env
+     from gym.spaces import Discrete
+elif gym_classics._backend == 'gymnasium':
+    from gymnasium import Env
+    from gymnasium.spaces import Discrete
+
+
+class BaseEnv(Env, metaclass=ABCMeta):
     """Abstract base class for shared functionality between all environments."""
 
     def __init__(self, starts, n_actions, reachable_states=None):
         self._starts = tuple(starts)
         self.action_space = Discrete(n_actions)
+        self.np_random = None  # Initialized by calling reset()
 
-        self._state = None
+        self.state = None
         self._transition_cache = {}
 
         if reachable_states is None:
@@ -36,11 +44,6 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
             i += 1
         self.observation_space = Discrete(i)
 
-        # Initialize the np_random module (user can override the seed later if desired)
-        self.seed()
-
-        self._use_sparse_model = False  # Set True for debug only
-
     def _search(self, state, visited):
         """A recursive depth-first search that adds all reachable states to the visited set."""
         visited.add(state)
@@ -51,23 +54,25 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
                     if not done and next_state not in visited:
                         self._search(next_state, visited)
 
-    def seed(self, seed=None):
-        self.np_random, seed = seeding.np_random(seed)
-        self.action_space.seed(seed)
-        return [seed]
+    def reset(self, seed=None, options=None):
+        if self.np_random is None and seed is None:
+            seed = np.random.default_rng().integers(2**32)
 
-    def reset(self):
+        if seed is not None:
+            self.action_space.seed(seed)
+            self.np_random = np.random.default_rng(seed)
+
         i = self.np_random.choice(len(self._starts))
-        self._state = self._starts[i]
-        return self._encode(self._state)
+        self.state = self._starts[i]
+        return self.encode(self.state), {}
 
     def step(self, action):
         assert self.action_space.contains(action)
-        state = self._state
+        state = self.state
         elements = self._sample_random_elements(state, action)
         next_state, reward, done, _ = self._deterministic_step(state, action, *elements)
-        self._state = next_state
-        return self._encode(next_state), reward, done, {}
+        self.state = next_state
+        return self.encode(next_state), reward, done, False, {}
 
     def _sample_random_elements(self, state, action):
         """Samples values for random elements (if any) that influence the environment
@@ -111,15 +116,15 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
         """Returns a generator over all possible environment states."""
         return range(self.observation_space.n)
 
-    def _encode(self, state):
+    def encode(self, state):
         """Converts a raw state into a unique integer."""
         return self._encoder[state]
 
-    def _decode(self, i):
+    def decode(self, i):
         """Reverts an encoded integer back to its raw state."""
         return self._decoder[i]
 
-    def _is_reachable(self, state):
+    def is_reachable(self, state):
         """Returns True if the state can be reached from at least one start location,
         False otherwise."""
         return state in self._reachable_states
@@ -140,8 +145,8 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
         rewards = np.zeros(n)
         probabilities = np.zeros(n)
 
-        for ns, r, d, p in self._generate_transitions(self._decode(state), action):
-            ns = self._encode(ns)
+        for ns, r, d, p in self._generate_transitions(self.decode(state), action):
+            ns = self.encode(ns)
             dones[ns] = float(d)
             rewards[ns] = r
             probabilities[ns] += p
@@ -149,12 +154,8 @@ class BaseEnv(gym.Env, metaclass=ABCMeta):
         assert (probabilities >= 0.0).all(), "transition probabilities must be nonnegative"
         assert abs(probabilities.sum() - 1.0) <= 0.01, "transition probabilities must sum to 1"
 
-        if not self._use_sparse_model:
-            i = np.nonzero(probabilities)
-            transition = (next_states[i], rewards[i], dones[i], probabilities[i])
-        else:
-            transition = (next_states, rewards, dones, probabilities)
-
+        i = np.nonzero(probabilities)
+        transition = (next_states[i], rewards[i], dones[i], probabilities[i])
         self._transition_cache[sa_pair] = transition
         return transition
 

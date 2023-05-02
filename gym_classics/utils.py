@@ -14,11 +14,11 @@ def print_gridworld(env, array, decimals=2, separator=' ' * 2, signed=True, tran
     maxlen = max([len(formatter(x)) for x in array])
 
     # Now we can actually print the values
-    for y in reversed(range(env._dims[1])):
-        for x in range(env._dims[0]):
+    for y in reversed(range(env.dims[1])):
+        for x in range(env.dims[0]):
             state = (x, y) if not transpose else (y, x)
-            if env._is_reachable(state):
-                s = env._encode(state)
+            if env.is_reachable(state):
+                s = env.encode(state)
                 print(formatter(array[s]).rjust(maxlen), end=separator)
             else:
                 print(' ' * maxlen, end=separator)

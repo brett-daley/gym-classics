@@ -1,5 +1,6 @@
 import gym
 import gym_classics
+gym_classics.register('gym')
 import numpy as np
 
 # Hyperparameters for Q-Learning
@@ -9,11 +10,7 @@ learning_rate = 0.025
 
 # Instantiate the environment
 env = gym.make('ClassicGridworld-v0')
-state = env.reset()
-
-# Set seeds for reproducibility
-np.random.seed(0)
-env.seed(0)
+state, _ = env.reset(seed=0)
 
 # Our Q-function is a numpy array
 Q = np.zeros([env.observation_space.n, env.action_space.n])
@@ -21,23 +18,26 @@ Q = np.zeros([env.observation_space.n, env.action_space.n])
 # Loop for 500k timesteps
 for _ in range(500000):
     # Select action from ε-greedy policy
-    if np.random.rand() < epsilon:
+    if env.np_random.random() < epsilon:
         action = env.action_space.sample()
     else:
         action = np.argmax(Q[state])
 
     # Step the environment
-    next_state, reward, done, _ = env.step(action)
+    next_state, reward, terminated, truncated, _ = env.step(action)
+    done = terminated or truncated
 
     # Q-Learning update:
     # Q(s,a) <-- Q(s,a) + α * (r + γ max_a' Q(s',a') - Q(s,a))
-    target = reward - Q[state, action]
+    td_error = reward - Q[state, action]
     if not done:
-        target += discount * np.max(Q[next_state])
-    Q[state, action] += learning_rate * target
+        td_error += discount * np.max(Q[next_state])
+    Q[state, action] += learning_rate * td_error
 
     # Reset the environment if we're done
-    state = env.reset() if done else next_state
+    if done:
+        next_state, _ = env.reset()
+    state = next_state
 
 # Now let's see what the value function looks like after training:
 V = np.max(Q, axis=1)

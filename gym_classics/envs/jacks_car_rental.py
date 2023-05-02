@@ -37,30 +37,20 @@ class JacksCarRental(BaseEnv):
         self.P1, self.R1 = open_to_close(self._lot1_requests_distr, self._lot1_dropoffs_distr)
         self.P2, self.R2 = open_to_close(self._lot2_requests_distr, self._lot2_dropoffs_distr)
 
-        # Episode terminates after 100 days (timesteps)
-        self._t = 0
-        self._time_limit = 100
-
         # Bypass the search for reachable states because we know the whole grid is valid
         states = [(i, j) for i in range(21) for j in range(21)]
         super().__init__(starts={(10, 10)}, n_actions=11, reachable_states=states)
 
-    def seed(self, seed=None):
-        seeds = super().seed(seed)
+    def reset(self, seed=None, options=None):
         # Make sure each distribution has access to the np_random module
         for distr in [self._lot1_requests_distr, self._lot1_dropoffs_distr,
                       self._lot2_requests_distr, self._lot2_dropoffs_distr]:
             distr.np_random = self.np_random
-        return seeds
-
-    def reset(self):
-        self._t = 0
-        return super().reset()
+        return super().reset(seed)
 
     def step(self, action):
-        self._t += 1
         assert self.action_space.contains(action)
-        state = self._state
+        state = self.state
         action = decode_action(action)
 
         next_state = move_cars(state, action)
@@ -70,8 +60,8 @@ class JacksCarRental(BaseEnv):
             next_state[i] = handle_requests_and_dropoffs(next_state[i], requests[i], dropoffs[i])
 
         next_state, reward, done, _ = self._deterministic_step(state, action, next_state)
-        self._state = next_state
-        return self._encode(next_state), reward, done, {}
+        self.state = next_state
+        return self.encode(next_state), reward, done, False, {}
 
     def _sample_random_elements(self):
         lot1_requests = self._lot1_requests_distr.sample()
@@ -107,12 +97,12 @@ class JacksCarRental(BaseEnv):
         return -2.0 * abs(action) + self.R1[n1] + self.R2[n2]
 
     def _done(self):
-        return self._t == self._time_limit
+        return False  # Environment has no terminal state
 
     def _generate_transitions(self, state, action):
         action = decode_action(action)
         for next_state in self.states():
-            next_state = self._decode(next_state)
+            next_state = self.decode(next_state)
             yield self._deterministic_step(state, action, next_state)
 
 
